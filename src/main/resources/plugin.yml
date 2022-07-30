@@ -1,0 +1,6 @@
+name: Lands
+version: '${project.version}'
+main: org.mooner.lands.Lands
+api-version: 1.18
+authors: [ Mooner510 ]
+description: Mooner's Land Plugin
