@@ -7,6 +7,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.mooner.lands.command.CommandManager;
 import org.mooner.lands.command.ICommand;
 import org.mooner.lands.command.IPlayerCommand;
+import org.mooner.lands.land.db.DatabaseManager;
 
 import java.util.Collections;
 import java.util.List;
@@ -21,6 +22,9 @@ public final class Lands extends JavaPlugin {
     @Override
     public void onEnable() {
         lands = this;
+        DatabaseManager.init = new DatabaseManager();
+        DatabaseManager.init.setUp();
+        DatabaseManager.init.update();
     }
 
     @Override

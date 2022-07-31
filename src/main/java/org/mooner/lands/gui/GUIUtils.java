@@ -136,6 +136,13 @@ public class GUIUtils {
         return i;
     }
 
+    public static ItemStack allFlags(ItemStack i) {
+        ItemMeta meta = i.getItemMeta();
+        meta.addItemFlags(ItemFlag.values());
+        i.setItemMeta(meta);
+        return i;
+    }
+
     public static ItemStack modifyFlags(ItemStack i, ItemFlag... metas) {
         ItemMeta meta = i.getItemMeta();
         meta.addItemFlags(metas);
