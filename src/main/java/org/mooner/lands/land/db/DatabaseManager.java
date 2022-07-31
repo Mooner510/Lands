@@ -1,6 +1,5 @@
 package org.mooner.lands.land.db;
 
-import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -25,6 +24,9 @@ public class DatabaseManager {
     public static DatabaseManager init;
     private static final String CONNECTION = "jdbc:sqlite:" + dataPath + " DB/lands.db";
     private static int maxSize;
+
+    private Map<String, String> message;
+//    private Map<String, List<String>> listMessage;
 
     private Map<String, LandsData> landsData;
     private Set<PlayerLand> playerLands;
@@ -123,10 +125,28 @@ public class DatabaseManager {
             lands.getLogger().warning("저장된 Lands를 불러오는 도중 오류가 발생했습니다.");
             e.printStackTrace();
         }
+
+        message = new HashMap<>();
+        FileConfiguration mConfig = loadConfig(dataPath, "message.yml");
+        try {
+            mConfig.getKeys(false).forEach(key -> message.put(key, mConfig.getString(key)));
+        } catch (Throwable e) {
+            lands.getLogger().warning("저장된 Lands를 불러오는 도중 오류가 발생했습니다.");
+            e.printStackTrace();
+        }
+    }
+
+    public LandsData getLandsData(String s) {
+        if(s == null) return null;
+        return landsData.get(s);
     }
 
     public Collection<LandsData> getLandsData() {
         return landsData.values();
+    }
+
+    public String getMessage(String s) {
+        return message.getOrDefault(s, s);
     }
 
     public boolean setLand(UUID uuid, String name, Location location, LandsData data) {
