@@ -25,7 +25,7 @@ public class MainGUI {
     private Inventory inventory;
     private Player player;
     private final Click listener = new Click();
-    private final HashMap<Integer, String> dataMap;
+    private final HashMap<Integer, LandsData> dataMap;
 
     public MainGUI(Player p) {
         dataMap = new HashMap<>();
@@ -36,7 +36,7 @@ public class MainGUI {
                 this.inventory = Bukkit.createInventory(p, 27, chat("&f&l새로운 땅 구매:"));
                 int slot = 0;
                 for (LandsData data : DatabaseManager.init.getLandsData()) {
-                    dataMap.put(slot, data.getName());
+                    dataMap.put(slot, data);
                     inventory.setItem(slot++, allFlags(createItem(data.getMaterial(), 1, data.getName(), data.getLore())));
                 }
             } else {
@@ -76,10 +76,10 @@ public class MainGUI {
                     return;
                 if(e.getClickedInventory().equals(inventory)) {
                     e.setCancelled(true);
-                    LandsData data = DatabaseManager.init.getLandsData(dataMap.get(e.getSlot()));
+                    LandsData data = dataMap.get(e.getSlot());
                     if(data != null) {
-                        player.closeInventory();
                         new LandNamer(player, data);
+                        player.closeInventory();
                     }
                 }
             }

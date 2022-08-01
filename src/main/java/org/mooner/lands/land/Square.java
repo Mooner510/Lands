@@ -26,21 +26,18 @@ public class Square {
     }
 
     public void getOutline(Consumer<int[]> action) {
-        for (int x = -distance; x <= distance; x = distance) {
-            for (int z = -distance; z <= distance; z++) {
-                action.accept(new int[]{x, z});
-                action.accept(new int[]{z, x});
-            }
+        for (int z = -distance; z <= distance; z++) {
+            action.accept(new int[]{-distance, z});
+            action.accept(new int[]{z, -distance});
+        }
+        for (int z = -distance; z <= distance; z++) {
+            action.accept(new int[]{distance, z});
+            action.accept(new int[]{z, distance});
         }
     }
 
     public boolean isIn(Square square) {
-        for (int i = 0; i < 2; i++) {
-            for (int j = 0; j < 2; j++) {
-                if(square.in(min[i], min[j])) return true;
-            }
-        }
-        return false;
+        return in(square.min[0], square.min[1]) || in(square.min[0], square.max[1]) || in(square.max[0], square.min[1]) || in(square.max[0], square.max[1]);
     }
 
     public boolean in(Location loc) {

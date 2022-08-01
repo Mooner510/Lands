@@ -3,5 +3,5 @@
   lore:
     - "제일 저렴한 &a기본 &7땅입니다."
   material: GRASS_BLOCK
-  size: 20
+  size: 10
   cost: 500

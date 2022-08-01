@@ -43,6 +43,7 @@ public class PlayerLand {
     }
 
     public int getCoopSize() {
+        if(coop == null) return 0;
         return coop.size();
     }
 }

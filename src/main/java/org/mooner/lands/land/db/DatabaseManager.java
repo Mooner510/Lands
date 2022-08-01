@@ -1,13 +1,11 @@
 package org.mooner.lands.land.db;
 
-import com.google.errorprone.annotations.DoNotCall;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.entity.Player;
 import org.mooner.lands.Lands;
 import org.mooner.lands.land.FlagManager;
 import org.mooner.lands.land.LandFlags;
@@ -48,6 +46,7 @@ public class DatabaseManager {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public void setUp() {
         new File(dataPath+"DB/").mkdirs();
         File db = new File(dataPath + "DB/", "lands.db");
@@ -68,6 +67,7 @@ public class DatabaseManager {
                                 "coop TEXT," +
                                 "x INTEGER NOT NULL," +
                                 "z INTEGER NOT NULL," +
+                                "world TEXT NOT NULL," +
                                 "spawn TEXT NOT NULL," +
                                 "size INTEGER NOT NULL," +
                                 "cost REAL NOT NULL," +
@@ -144,13 +144,12 @@ public class DatabaseManager {
                 ResultSet r = c.prepareStatement("SELECT * FROM Lands").executeQuery()
         ) {
             while(r.next()) {
-                String coop = r.getString("coop");
                 String[] spawns = r.getString("spawn").split(":");
                 playerLands.add(new PlayerLand(
                         r.getInt("id"),
                         UUID.fromString(r.getString("owner")),
                         r.getString("name"),
-                        coop == null ? null : Arrays.stream(coop.split(",")).map(UUID::fromString).collect(Collectors.toSet()),
+                        (Set<UUID>) r.getObject("coop"),
                         r.getInt("x"),
                         r.getInt("z"),
                         new Location(Bukkit.getWorld(r.getString("world")), Double.parseDouble(spawns[0]), Double.parseDouble(spawns[1]), Double.parseDouble(spawns[2]), Float.parseFloat(spawns[3]), Float.parseFloat(spawns[4])),
@@ -205,7 +204,7 @@ public class DatabaseManager {
         FileConfiguration mConfig = loadConfig(dataPath, "config.yml");
         try {
             if (mConfig.isSet("messages")) {
-                mConfig.getConfigurationSection("messages").getKeys(false).forEach(key -> message.put(key, chat(mConfig.getString(key))));
+                mConfig.getConfigurationSection("messages").getKeys(false).forEach(key -> message.put(key, chat(mConfig.getString("messages."+key))));
             }
             maxLands = mConfig.getInt("maxLands", 4);
         } catch (Throwable e) {
@@ -229,31 +228,43 @@ public class DatabaseManager {
 
     public LandState setLand(UUID uuid, String name, Location location, LandsData data) {
         Set<PlayerLand> lands = getPlayerLands(uuid);
+        Bukkit.broadcastMessage("1");
         if(lands.size() >= maxLands) return LandState.MAX_LANDS;
+        Bukkit.broadcastMessage("2");
         if(lands.stream().anyMatch(land -> land.getName().equals(name))) return LandState.ALREADY_EXISTS;
+        Bukkit.broadcastMessage("3");
         if(!canBuy(location, data)) return LandState.OTHER_LAND;
+        Bukkit.broadcastMessage("4");
         World w = location.getWorld();
+        Bukkit.broadcastMessage("5");
         if(w == null) return LandState.NOT_FOUND;
+        Bukkit.broadcastMessage("6");
         Square square = new Square(location.getBlockX(), location.getBlockZ(), data.getSize());
+        Bukkit.broadcastMessage("7");
         final int x = location.getBlockX();
         final int z = location.getBlockZ();
-        square.getOutline(arr -> w.getHighestBlockAt(arr[0] + x, arr[1] + z).setType(Material.OAK_FENCE));
+        square.getOutline(arr -> new Location(w, arr[0] + x, w.getHighestBlockYAt(arr[0] + x, arr[1] + z) + 1, arr[1] + z).getBlock().setType(Material.OAK_FENCE));
+        Bukkit.broadcastMessage("8");
         Bukkit.getScheduler().runTaskAsynchronously(Lands.lands, () -> {
+            Bukkit.broadcastMessage("9");
             try(
                     Connection c = DriverManager.getConnection(CONNECTION);
-                    PreparedStatement s = c.prepareStatement("INSERT INTO Lands (owner, name, coop, x, z, size, world, cost) VALUES(?, ?, ?, ?, ?, ?, ?, ?)")
+                    PreparedStatement s = c.prepareStatement("INSERT INTO Lands (owner, name, coop, x, z, world, spawn, size, cost) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)")
             ) {
                 s.setString(1, uuid.toString());
                 s.setString(2, name);
                 s.setString(3, null);
                 s.setInt(4, location.getBlockX());
                 s.setInt(5, location.getBlockZ());
-                s.setInt(6, data.getSize());
-                s.setString(7, w.getName());
-                s.setDouble(8, data.getCost());
+                s.setString(6, w.getName());
+                s.setString(7, location.getX()+":"+location.getY()+":"+location.getZ()+":"+location.getYaw()+":"+location.getPitch());
+                s.setInt(8, data.getSize());
+                s.setDouble(9, data.getCost());
+                s.executeUpdate();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
+            playerLands.add(getPlayerLandInDB(uuid, name));
         });
         return LandState.COMPLETE;
     }
@@ -350,12 +361,8 @@ public class DatabaseManager {
     }
 
     public boolean canBuy(Location location, LandsData data) {
-        final int x = location.getBlockX();
-        final int z = location.getBlockZ();
-        Square s = new Square(x, location.getBlockZ(), data.getSize());
-        return playerLands.stream()
-                .filter(land -> (x + maxSize >= land.getSquare().getX() || x - maxSize <= land.getSquare().getX()) && (z + maxSize >= land.getSquare().getZ() || z - maxSize <= land.getSquare().getZ()))
-                .noneMatch(land -> land.getSquare().isIn(s));
+        Square s = new Square(location.getBlockX(), location.getBlockZ(), data.getSize());
+        return playerLands.stream().noneMatch(land -> land.getSquare().isIn(s));
     }
 
     public PlayerLand getCurrentLand(Location location) {
@@ -365,6 +372,32 @@ public class DatabaseManager {
                 .filter(land -> land.getSquare().in(x, z))
                 .findFirst()
                 .orElse(null);
+    }
+
+    @SuppressWarnings("unchecked")
+    public PlayerLand getPlayerLandInDB(UUID uuid, String name) {
+        try (
+                Connection c = DriverManager.getConnection(CONNECTION);
+                ResultSet r = c.prepareStatement("SELECT * from Lands where owner=\""+uuid+"\" and name=\""+name+"\"").executeQuery()
+        ) {
+            if (r.next()) {
+                String[] spawns = r.getString("spawn").split(":");
+                return new PlayerLand(
+                        r.getInt("id"),
+                        UUID.fromString(r.getString("owner")),
+                        r.getString("name"),
+                        (Set<UUID>) r.getObject("coop"),
+                        r.getInt("x"),
+                        r.getInt("z"),
+                        new Location(Bukkit.getWorld(r.getString("world")), Double.parseDouble(spawns[0]), Double.parseDouble(spawns[1]), Double.parseDouble(spawns[2]), Float.parseFloat(spawns[3]), Float.parseFloat(spawns[4])),
+                        r.getInt("size"),
+                        r.getDouble("cost")
+                );
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public PlayerLand getPlayerLand(UUID uuid, String name) {

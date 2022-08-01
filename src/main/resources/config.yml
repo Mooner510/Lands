@@ -1,4 +1,6 @@
-land-create-name: "&2[ &f땅 &2] &7땅의 이름을 입력해 주세요."
-land-create-max-land: "&2[ &f땅 &2] &c최대 개수의 땅을 가지고 있어 구매할 수 없습니다."
-land-create-already-exists: "&2[ &f땅 &2] &c이미 해당 이름의 땅이 있습니다."
-land-create-other-land: "&2[ &f땅 &2] &c다른 땅과 겹칩니다."
+messages:
+  land-create-name: "&2[ &f땅 &2] &7땅의 이름을 입력해 주세요."
+  land-create-max-land: "&2[ &f땅 &2] &c최대 개수의 땅을 가지고 있어 구매할 수 없습니다."
+  land-create-already-exists: "&2[ &f땅 &2] &c이미 해당 이름의 땅이 있습니다."
+  land-create-other-land: "&2[ &f땅 &2] &c다른 땅과 겹칩니다."
+  land-create-complete: "&2[ &f땅 &2] &a땅을 구매했습니다!"
