@@ -2,5 +2,6 @@
   name: "&a기본 &f땅"
   lore:
     - "제일 저렴한 &a기본 &7땅입니다."
+  material: GRASS_BLOCK
   size: 20
   cost: 500

@@ -22,6 +22,8 @@ public final class Lands extends JavaPlugin {
     @Override
     public void onEnable() {
         lands = this;
+        CommandManager.init = new CommandManager();
+
         DatabaseManager.init = new DatabaseManager();
         DatabaseManager.init.setUp();
         DatabaseManager.init.update();

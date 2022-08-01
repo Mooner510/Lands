@@ -1,6 +1,7 @@
 package org.mooner.lands.command;
 
 import org.bukkit.Bukkit;
+import org.mooner.lands.command.commands.CmdLand;
 
 import java.util.HashMap;
 
@@ -14,10 +15,11 @@ public class CommandManager {
     public CommandManager() {
         commands = new HashMap<>();
         register(
+                new CmdLand()
         );
     }
 
-    public void register(ICommand... commands) {
+    private void register(ICommand... commands) {
         for (ICommand c : commands) {
             if(c.getName().isEmpty()) {
                 Bukkit.getConsoleSender().sendMessage(chat("&cUnregister Command: &c" + c.getClass().getName()));

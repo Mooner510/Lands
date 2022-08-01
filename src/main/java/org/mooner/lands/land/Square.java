@@ -1,6 +1,7 @@
 package org.mooner.lands.land;
 
 import lombok.Getter;
+import org.bukkit.Location;
 
 import java.util.function.Consumer;
 
@@ -40,6 +41,10 @@ public class Square {
             }
         }
         return false;
+    }
+
+    public boolean in(Location loc) {
+        return in(loc.getBlockX(), loc.getBlockZ());
     }
 
     public boolean in(int x, int z) {
