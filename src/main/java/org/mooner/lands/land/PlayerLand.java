@@ -1,9 +1,9 @@
 package org.mooner.lands.land;
 
 import lombok.Getter;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -19,18 +19,18 @@ public class PlayerLand {
     @Getter
     private final Square square;
     @Getter
-    private final String world;
+    private final Location spawnLocation;
 
     @Getter
     private final double cost;
 
-    public PlayerLand(int id, UUID owner, String name, Set<UUID> coop, int x, int z, String world, int size, double cost) {
+    public PlayerLand(int id, UUID owner, String name, Set<UUID> coop, int x, int z, Location loc, int size, double cost) {
         this.id = id;
         this.owner = owner;
         this.name = name;
         this.coop = coop;
         this.square = new Square(x, z, size);
-        this.world = world;
+        this.spawnLocation = loc;
         this.cost = cost;
     }
 
@@ -40,5 +40,9 @@ public class PlayerLand {
 
     public boolean isCoop(UUID uuid) {
         return coop.contains(uuid);
+    }
+
+    public int getCoopSize() {
+        return coop.size();
     }
 }

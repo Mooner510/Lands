@@ -1,39 +1,40 @@
 package org.mooner.lands.land;
 
 import lombok.Getter;
+import org.bukkit.Material;
 
 @Getter
 public enum LandFlags {
-    MOVE_IN("입장", true, LandFlagSetting.DENY),
-    MOVE_OUT("퇴장", true, LandFlagSetting.DENY),
-    BLOCK_PLACE("건축", true, LandFlagSetting.DENY),
-    BLOCK_BREAK("채굴 및 파괴", true, LandFlagSetting.DENY),
-    OPEN("문 열기", true, LandFlagSetting.DENY),
-    USE_BUTTON("버튼 및 레버 사용", true, LandFlagSetting.DENY),
-    USE_PLATE("갑압판 및 실 밟기", true, LandFlagSetting.DENY),
-    USE_CHEST("상자 사용", true, LandFlagSetting.DENY),
-    USE_ANVIL("모루 사용", true, LandFlagSetting.DENY),
-    USE_ENCHANTMENTS("마법 부여대, 숫돌 사용", true, LandFlagSetting.ALLOW),
-    ENDER_PEARL_TELEPORT("엔더진주 사용", true, LandFlagSetting.DENY),
-    USE_ITEM_FRAME("아이템 거치대 사용", true, LandFlagSetting.DENY),
-    PROTECT_ITEM_FRAME("몹으로부터 아이템 거치대 보호", false, LandFlagSetting.DENY),
-    RIDE("탑승", true, LandFlagSetting.DENY),
-    EXPLODE("폭발", false, LandFlagSetting.DENY),
-    LIGHTNING("번개", false, LandFlagSetting.DENY),
-    ITEM_PICKUP("아이템 줍기", true, LandFlagSetting.DENY),
-    ITEM_THROW("아이템 던지기", true, LandFlagSetting.DENY),
-    FIRE("불 확산", false, LandFlagSetting.DENY),
-    PVP("플레이어간 전투", false, LandFlagSetting.ALLOW),
-    ENTITY_DAMAGE_BY_PLAYER("몬스터 공격", true, LandFlagSetting.ALLOW),
+    MOVE_IN("입장", true, LandFlagSetting.DENY, Material.OAK_DOOR),
+    MOVE_OUT("퇴장", true, LandFlagSetting.DENY, Material.DARK_OAK_DOOR),
+    BLOCK_PLACE("건축", true, LandFlagSetting.DENY, Material.BRICK),
+    BLOCK_BREAK("채굴 및 파괴", true, LandFlagSetting.DENY, Material.IRON_PICKAXE),
+    OPEN("문 열기", true, LandFlagSetting.DENY, Material.IRON_DOOR),
+    USE_BUTTON("버튼 및 레버 사용", true, LandFlagSetting.DENY, Material.STONE_BUTTON),
+    USE_PLATE("갑압판 및 실 밟기", true, LandFlagSetting.DENY, Material.OAK_PRESSURE_PLATE),
+    USE_CHEST("상자 사용", true, LandFlagSetting.DENY, Material.CHEST),
+    USE_ANVIL("모루 사용", true, LandFlagSetting.DENY, Material.ANVIL),
+    USE_ENCHANTMENTS("마법 부여대, 숫돌 사용", true, LandFlagSetting.ALLOW, Material.ENCHANTING_TABLE),
+    ENDER_PEARL_TELEPORT("엔더진주 사용", true, LandFlagSetting.DENY, Material.ENDER_PEARL),
+    USE_ITEM_FRAME("아이템 거치대 사용", true, LandFlagSetting.DENY, Material.ITEM_FRAME),
+    PROTECT_ITEM_FRAME("몹으로부터 아이템 거치대 보호", false, LandFlagSetting.DENY, Material.GLOW_ITEM_FRAME),
+    RIDE("탑승", true, LandFlagSetting.DENY, Material.SADDLE),
+    EXPLODE("폭발", false, LandFlagSetting.DENY, Material.TNT),
+    LIGHTNING("번개", false, LandFlagSetting.DENY, Material.LIGHTNING_ROD),
+    ITEM_PICKUP("아이템 줍기", true, LandFlagSetting.DENY, Material.WHEAT_SEEDS),
+    ITEM_THROW("아이템 던지기", true, LandFlagSetting.DENY, Material.PUMPKIN_SEEDS),
+    FIRE("불 확산", false, LandFlagSetting.DENY, Material.FLINT_AND_STEEL),
+    PVP("플레이어간 전투", false, LandFlagSetting.ALLOW, Material.DIAMOND_SWORD),
+    ENTITY_DAMAGE_BY_PLAYER("몬스터 공격", true, LandFlagSetting.ALLOW, Material.ZOMBIE_HEAD),
 //    ENTITY_TARGET("몬스터 타겟", true, LandFlagSetting.ALLOW),
-    PLAYER_DAMAGE_BY_ENTITY("몬스터 피해", true, LandFlagSetting.ALLOW),
-    ENTITY_SPAWN("몹 스폰", false, LandFlagSetting.ALLOW),
-    ENDERMAN_BLOCK("엔더맨 블록 피해", false, LandFlagSetting.DENY),
+    PLAYER_DAMAGE_BY_ENTITY("몬스터 피해", true, LandFlagSetting.ALLOW, Material.SKELETON_SKULL),
+    ENTITY_SPAWN("몹 스폰", false, LandFlagSetting.ALLOW, Material.ZOMBIE_SPAWN_EGG),
+    ENDERMAN_BLOCK("엔더맨 블록 피해", false, LandFlagSetting.DENY, Material.ENDERMAN_SPAWN_EGG),
 //    FLOW("액체 흐름"),
-    LAVA_FLOW("용암 흐름", false, LandFlagSetting.DENY),
-    GROW("작물 성장", false, LandFlagSetting.ALLOW),
-    FRUIT_TELEPORT("후렴과 순간이동", true, LandFlagSetting.DENY),
-    EXP_PICKUP("경험치 줍기", true, LandFlagSetting.ALLOW);
+    LAVA_FLOW("용암 흐름", false, LandFlagSetting.DENY, Material.LAVA),
+    GROW("작물 성장", false, LandFlagSetting.ALLOW, Material.WHEAT),
+    FRUIT_TELEPORT("후렴과 순간이동", true, LandFlagSetting.DENY, Material.CHORUS_FRUIT),
+    EXP_PICKUP("경험치 획득", true, LandFlagSetting.ALLOW, Material.EXPERIENCE_BOTTLE);
 
     public enum LandFlagSetting {
         ALLOW,
@@ -45,10 +46,12 @@ public enum LandFlags {
     private final String tag;
     private final boolean playerFlag;
     private final LandFlagSetting defaultSetting;
+    private final Material material;
 
-    LandFlags(String s, boolean p, LandFlagSetting def) {
+    LandFlags(String s, boolean p, LandFlagSetting def, Material material) {
         this.tag = s;
         this.playerFlag = p;
         this.defaultSetting = def;
+        this.material = material;
     }
 }

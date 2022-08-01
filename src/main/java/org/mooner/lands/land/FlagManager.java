@@ -28,6 +28,20 @@ public class FlagManager {
         return true;
     }
 
+    public LandFlags.LandFlagSetting nextFlagRequest(LandFlags flag) {
+        LandFlags.LandFlagSetting f = getRealFlag(flag);
+        if( LandFlags.LandFlagSetting.values().length - 1 == f.ordinal()) {
+            f = LandFlags.LandFlagSetting.values()[0];
+        } else {
+            f = LandFlags.LandFlagSetting.values()[f.ordinal()];
+        }
+        if(!flag.isPlayerFlag() && f == LandFlags.LandFlagSetting.ONLY_COOP) {
+            f = LandFlags.LandFlagSetting.values()[f.ordinal()];
+        }
+        requests.put(flag, f);
+        return f;
+    }
+
     public void queue() {
         if(requests.isEmpty()) return;
         requests.forEach(this::setFlag);
@@ -42,10 +56,19 @@ public class FlagManager {
         valueMap.put(data.getId(), data.getSetting());
     }
 
+    public LandFlags.LandFlagSetting getRealFlag(LandFlags flag) {
+        LandFlags.LandFlagSetting v = requests.get(flag);
+        if(v != null) return v;
+        Integer id = flagMap.get(flag);
+        if(id == null) return LandFlags.LandFlagSetting.DEFAULT;
+        return (v = valueMap.get(id)) == null ? LandFlags.LandFlagSetting.DEFAULT : v;
+    }
+
     public LandFlags.LandFlagSetting getFlag(LandFlags flag) {
+        LandFlags.LandFlagSetting v = requests.get(flag);
+        if(v != null) return v == LandFlags.LandFlagSetting.DEFAULT ? flag.getDefaultSetting() : v;
         Integer id = flagMap.get(flag);
         if(id == null) return flag.getDefaultSetting();
-        LandFlags.LandFlagSetting v;
         return (v = valueMap.get(id)) == null || v == LandFlags.LandFlagSetting.DEFAULT ? flag.getDefaultSetting() : v;
     }
 }

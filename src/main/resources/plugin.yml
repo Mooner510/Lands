@@ -8,6 +8,5 @@ description: Mooner's Land Plugin
 commands:
   land:
     description: "land"
-#depend:
-#  - HolographicDisplays
-#  - NametagEdit
+depend:
+  - NBTAPI

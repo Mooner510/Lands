@@ -1,5 +1,6 @@
 package org.mooner.lands.land.db;
 
+import com.google.errorprone.annotations.DoNotCall;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -67,8 +68,8 @@ public class DatabaseManager {
                                 "coop TEXT," +
                                 "x INTEGER NOT NULL," +
                                 "z INTEGER NOT NULL," +
+                                "spawn TEXT NOT NULL," +
                                 "size INTEGER NOT NULL," +
-                                "world TEXT NOT NULL," +
                                 "cost REAL NOT NULL," +
                                 "PRIMARY KEY(id AUTOINCREMENT)" +
                                 ")")
@@ -144,6 +145,7 @@ public class DatabaseManager {
         ) {
             while(r.next()) {
                 String coop = r.getString("coop");
+                String[] spawns = r.getString("spawn").split(":");
                 playerLands.add(new PlayerLand(
                         r.getInt("id"),
                         UUID.fromString(r.getString("owner")),
@@ -151,7 +153,7 @@ public class DatabaseManager {
                         coop == null ? null : Arrays.stream(coop.split(",")).map(UUID::fromString).collect(Collectors.toSet()),
                         r.getInt("x"),
                         r.getInt("z"),
-                        r.getString("world"),
+                        new Location(Bukkit.getWorld(r.getString("world")), Double.parseDouble(spawns[0]), Double.parseDouble(spawns[1]), Double.parseDouble(spawns[2]), Float.parseFloat(spawns[3]), Float.parseFloat(spawns[4])),
                         r.getInt("size"),
                         r.getDouble("cost")
                 ));
@@ -256,6 +258,12 @@ public class DatabaseManager {
         return LandState.COMPLETE;
     }
 
+    public LandFlags.LandFlagSetting getRealFlag(int land, LandFlags flag) {
+        FlagManager manager = this.flagManagerMap.get(land);
+        if(manager == null) return null;
+        return manager.getRealFlag(flag);
+    }
+
     public LandFlags.LandFlagSetting getFlag(int land, LandFlags flag) {
         FlagManager manager = this.flagManagerMap.get(land);
         if(manager == null) return null;
@@ -288,6 +296,10 @@ public class DatabaseManager {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public FlagManager getFlagManager(int land) {
+        return this.flagManagerMap.get(land);
     }
 
     @Nullable
@@ -346,7 +358,7 @@ public class DatabaseManager {
                 .noneMatch(land -> land.getSquare().isIn(s));
     }
 
-    public PlayerLand getLands(Location location) {
+    public PlayerLand getCurrentLand(Location location) {
         final int x = location.getBlockX();
         final int z = location.getBlockZ();
         return playerLands.stream()

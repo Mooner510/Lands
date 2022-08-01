@@ -4,6 +4,8 @@ import lombok.Getter;
 import org.bukkit.Material;
 import org.mooner.lands.MoonerUtils;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.mooner.lands.MoonerUtils.chat;
@@ -21,7 +23,13 @@ public class LandsData {
         this.material = m;
         this.size = size;
         this.cost = cost;
-        this.lore = List.of(lore).stream().map(MoonerUtils::chat).toList();
+        List<String> l = new ArrayList<>();
+        l.add("");
+        l.addAll(Arrays.asList(lore));
+        l.add("&7사이즈 &6" + size * 2 + "x" + size*2);
+        l.add("");
+        l.add("&7가격 : &b" + cost + "원");
+        this.lore = l.stream().map(MoonerUtils::chat).toList();
     }
 
     public LandsData(String name, Material m, int size, double cost, List<String> lore) {
@@ -29,6 +37,12 @@ public class LandsData {
         this.material = m;
         this.size = size;
         this.cost = cost;
-        this.lore = lore.stream().map(MoonerUtils::chat).toList();
+        List<String> l = new ArrayList<>();
+        l.add("");
+        l.addAll(lore);
+        l.add("&7사이즈 &6" + size * 2 + "x" + size*2);
+        l.add("");
+        l.add("&7가격 : &b" + cost + "원");
+        this.lore = l.stream().map(MoonerUtils::chat).toList();
     }
 }
