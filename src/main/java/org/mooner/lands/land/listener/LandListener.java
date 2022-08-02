@@ -30,16 +30,15 @@ public class LandListener implements Listener {
     }
 
     private boolean check(LandFlags flag) {
-        return DatabaseManager.init.getFlag(land, flag) != LandFlags.LandFlagSetting.ALLOW;
+        return DatabaseManager.init.getFlag(land, flag) == LandFlags.LandFlagSetting.ALLOW;
     }
 
     private boolean check(LandFlags flag, Player p) {
-        if(p != null && p.getUniqueId() == owner) return false;
+        if(p != null && p.getUniqueId() == owner) return true;
         LandFlags.LandFlagSetting s;
-        if((s = DatabaseManager.init.getFlag(land, flag)) != LandFlags.LandFlagSetting.ALLOW) {
-            if(p != null && s == LandFlags.LandFlagSetting.ONLY_COOP) {
-                return !DatabaseManager.init.getPlayerLand(land).isCoop(p);
-            } else return true;
+        if((s = DatabaseManager.init.getFlag(land, flag)) == LandFlags.LandFlagSetting.ALLOW) return true;
+        if(p != null && s == LandFlags.LandFlagSetting.ONLY_COOP) {
+            return DatabaseManager.init.getPlayerLand(land).isCoop(p);
         }
         return false;
     }

@@ -29,9 +29,9 @@ public class FlagGUI {
 
     private void updateSlot(int i, LandFlags flags, LandFlags.LandFlagSetting flag) {
         inventory.setItem(i, allFlags(createItem(flags.getMaterial(), 1,
-                flag == LandFlags.LandFlagSetting.ALLOW ? "&a" :
+                (flag == LandFlags.LandFlagSetting.ALLOW ? "&a" :
                         flag == LandFlags.LandFlagSetting.ONLY_COOP ? "&b" :
-                                flag == LandFlags.LandFlagSetting.DEFAULT ? "&7" : "&c" + flags.getTag(),
+                                flag == LandFlags.LandFlagSetting.DEFAULT ? "&7" : "&c") + flags.getTag(),
                 "&7설정: " + (flag == LandFlags.LandFlagSetting.ALLOW ? "&a허용" :
                         flag == LandFlags.LandFlagSetting.ONLY_COOP ? "&b공유 플레이어만" :
                                 flag == LandFlags.LandFlagSetting.DEFAULT ? "&7기본" : "&c거부"), "", "&e클릭하여 설정하세요!")));
@@ -43,7 +43,7 @@ public class FlagGUI {
         this.page = page;
         Bukkit.getScheduler().runTaskAsynchronously(lands, () -> {
             this.player = p;
-            this.inventory = Bukkit.createInventory(p, 45, chat("&f&l지역 관리하기"));
+            this.inventory = Bukkit.createInventory(p, 45, chat("&8&l설정 메뉴"));
             ItemStack pane = createItem(Material.BLACK_STAINED_GLASS_PANE, 1, " ");
             for (int i = 0; i < 9; i++) {
                 inventory.setItem(i, pane);
@@ -92,14 +92,13 @@ public class FlagGUI {
                         }
                     }
                     if(e.getSlot() >= 9 && e.getSlot() <= 35) {
-                        if(lastClick + 1000 <= getTime()) {
-                            player.sendMessage(chat("&c천천히 눌러주세요!"));
-                            playSound(player, Sound.ENTITY_ENDERMAN_TELEPORT, 0.85, 0.5);
-                            return;
-                        }
+                        if(lastClick + 500 > getTime()) return;
                         lastClick = getTime();
                         LandFlags flags = LandFlags.values()[e.getSlot() - 9 + (page - 1) * 36];
-                        updateSlot(e.getSlot(), flags, DatabaseManager.init.getFlagManager(id).nextFlagRequest(flags));
+                        LandFlags.LandFlagSetting flag = DatabaseManager.init.getLandManager(id).nextFlagRequest(flags);
+                        updateSlot(e.getSlot(), flags, flag);
+                        Bukkit.broadcastMessage(flag.toString());
+                        player.updateInventory();
                         playSound(player, Sound.UI_BUTTON_CLICK, 0.85, 1);
                     }
                 }
@@ -109,10 +108,10 @@ public class FlagGUI {
         @EventHandler
         public void onClose(InventoryCloseEvent e){
             if(inventory.equals(e.getInventory()) && e.getPlayer().getUniqueId().equals(player.getUniqueId())) {
-                HandlerList.unregisterAll(this);
-                DatabaseManager.init.getFlagManager(id).queue();
+                DatabaseManager.init.getLandManager(id).queue();
                 inventory = null;
                 player = null;
+                HandlerList.unregisterAll(this);
             }
         }
     }

@@ -42,9 +42,9 @@ public enum LandFlags {
     EXP_PICKUP("경험치 획득", true, LandFlagSetting.ALLOW, Material.EXPERIENCE_BOTTLE);
 
     public enum LandFlagSetting {
+        DEFAULT,
         ALLOW,
         ONLY_COOP,
-        DEFAULT,
         DENY,
     }
 

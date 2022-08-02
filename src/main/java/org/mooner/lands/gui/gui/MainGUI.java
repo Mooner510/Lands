@@ -3,8 +3,6 @@ package org.mooner.lands.gui.gui;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Particle;
-import org.bukkit.block.data.BlockData;
-import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -31,13 +29,12 @@ public class MainGUI {
     private Player player;
     private final Click listener = new Click();
     private HashMap<Integer, LandsData> dataMap;
-    private int id;
-    private Square square;
+    private final PlayerLand land;
 
     public MainGUI(Player p) {
+        this.land = DatabaseManager.init.getCurrentLand(p.getLocation());
         Bukkit.getScheduler().runTaskAsynchronously(lands, () -> {
             this.player = p;
-            final PlayerLand land = DatabaseManager.init.getCurrentLand(p.getLocation());
             if(land == null) {
                 dataMap = new HashMap<>();
                 this.inventory = Bukkit.createInventory(p, 27, chat("&f&l새로운 땅 구매:"));
@@ -49,8 +46,6 @@ public class MainGUI {
             } else {
                 dataMap = null;
                 this.inventory = Bukkit.createInventory(p, 27, chat("&f&l지역 관리하기"));
-                this.id = land.getId();
-                this.square = land.getSquare();
                 ItemStack pane = createItem(Material.BLACK_STAINED_GLASS_PANE, 1, " ");
                 for (int i = 0; i < 9; i++) {
                     inventory.setItem(i, pane);
@@ -93,15 +88,18 @@ public class MainGUI {
                             player.closeInventory();
                         }
                     } else {
-                        if (e.getSlot() == 14) {
-                            player.sendMessage("asdf");
-                            new FlagGUI(player, id, 1);
+                        if(e.getSlot() == 8) {
+                            DatabaseManager.init.deleteLand(land.getId());
+                        } else if (e.getSlot() == 14) {
+                            new FlagGUI(player, land.getId(), 1);
                         } else if(e.getSlot() == 16) {
                             for (int i = 0; i < 3; i++) {
                                 Player player = MainGUI.this.player;
+                                int y = player.getLocation().getBlockY();
+                                Square square = land.getSquare();
                                 Bukkit.getScheduler().runTaskLater(lands, () -> {
-                                    for (int j = player.getLocation().getBlockY(); j <= 320; j += 32) {
-                                        int finalI = j;
+                                    for (int j = 0; j < 3; j++) {
+                                        int finalI = y + j * 16 + 4;
                                         square.getOutline(arr -> player.spawnParticle(Particle.BLOCK_MARKER, arr[0] + 0.5 + square.getX(), finalI + 0.5, arr[1] + 0.5 + square.getZ(), 1, Material.BARRIER.createBlockData()));
                                     }
                                 }, i * 4 * 15);

@@ -7,7 +7,7 @@ import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.mooner.lands.Lands;
-import org.mooner.lands.land.FlagManager;
+import org.mooner.lands.land.LandManager;
 import org.mooner.lands.land.LandFlags;
 import org.mooner.lands.land.PlayerLand;
 import org.mooner.lands.land.Square;
@@ -34,7 +34,7 @@ public class DatabaseManager {
     private Map<String, String> message;
 //    private Map<String, List<String>> listMessage;
 
-    private Map<Integer, FlagManager> flagManagerMap;
+    private Map<Integer, LandManager> landManagerMap;
     private Map<String, LandsData> landsData;
     private Set<PlayerLand> playerLands;
 
@@ -137,7 +137,7 @@ public class DatabaseManager {
             }
         }
 
-        flagManagerMap = new HashMap<>();
+        landManagerMap = new HashMap<>();
         HashMap<Integer, ArrayList<FlagData>> flags = new HashMap<>();
         try(
                 Connection c = DriverManager.getConnection(CONNECTION);
@@ -162,7 +162,7 @@ public class DatabaseManager {
             while(r.next()) {
                 String[] spawns = r.getString("spawn").split(":");
                 int id = r.getInt("id");
-                playerLands.add(new PlayerLand(
+                PlayerLand land = new PlayerLand(
                         id,
                         UUID.fromString(r.getString("owner")),
                         r.getString("name"),
@@ -172,8 +172,9 @@ public class DatabaseManager {
                         new Location(Bukkit.getWorld(r.getString("world")), Double.parseDouble(spawns[0]), Double.parseDouble(spawns[1]), Double.parseDouble(spawns[2]), Float.parseFloat(spawns[3]), Float.parseFloat(spawns[4])),
                         r.getInt("size"),
                         r.getDouble("cost")
-                ));
-                flagManagerMap.put(id, new FlagManager(id, flags.get(id)));
+                );
+                playerLands.add(land);
+                landManagerMap.put(id, new LandManager(land, flags.get(id)));
 //                maxSize = Math.max(maxSize, r.getInt("size"));
             }
             Lands.lands.getLogger().info("성공적으로 플레이어의 Land를 불러왔습니다.");
@@ -229,25 +230,16 @@ public class DatabaseManager {
 
     public LandState setLand(UUID uuid, String name, Location location, LandsData data) {
         Set<PlayerLand> lands = getPlayerLands(uuid);
-        Bukkit.broadcastMessage("1");
         if(lands.size() >= maxLands) return LandState.MAX_LANDS;
-        Bukkit.broadcastMessage("2");
         if(lands.stream().anyMatch(land -> land.getName().equals(name))) return LandState.ALREADY_EXISTS;
-        Bukkit.broadcastMessage("3");
         if(!canBuy(location, data)) return LandState.OTHER_LAND;
-        Bukkit.broadcastMessage("4");
         World w = location.getWorld();
-        Bukkit.broadcastMessage("5");
         if(w == null) return LandState.NOT_FOUND;
-        Bukkit.broadcastMessage("6");
         Square square = new Square(location.getBlockX(), location.getBlockZ(), data.getSize());
-        Bukkit.broadcastMessage("7");
         final int x = location.getBlockX();
         final int z = location.getBlockZ();
         square.getOutline(arr -> new Location(w, arr[0] + x, w.getHighestBlockYAt(arr[0] + x, arr[1] + z) + 1, arr[1] + z).getBlock().setType(Material.OAK_FENCE));
-        Bukkit.broadcastMessage("8");
         Bukkit.getScheduler().runTaskAsynchronously(Lands.lands, () -> {
-            Bukkit.broadcastMessage("9");
             try(
                     Connection c = DriverManager.getConnection(CONNECTION);
                     PreparedStatement s = c.prepareStatement("INSERT INTO Lands (owner, name, coop, x, z, world, spawn, size, cost) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)")
@@ -265,19 +257,21 @@ public class DatabaseManager {
             } catch (SQLException e) {
                 e.printStackTrace();
             }
-            playerLands.add(getPlayerLandInDB(uuid, name));
+            PlayerLand land = getPlayerLandInDB(uuid, name);
+            playerLands.add(land);
+            landManagerMap.put(land.getId(), new LandManager(land, null));
         });
         return LandState.COMPLETE;
     }
 
     public LandFlags.LandFlagSetting getRealFlag(int land, LandFlags flag) {
-        FlagManager manager = this.flagManagerMap.get(land);
+        LandManager manager = this.landManagerMap.get(land);
         if(manager == null) return null;
         return manager.getRealFlag(flag);
     }
 
     public LandFlags.LandFlagSetting getFlag(int land, LandFlags flag) {
-        FlagManager manager = this.flagManagerMap.get(land);
+        LandManager manager = this.landManagerMap.get(land);
         if(manager == null) return null;
         return manager.getFlag(flag);
     }
@@ -288,7 +282,7 @@ public class DatabaseManager {
                 ResultSet r = c.prepareStatement("SELECT * from Flags where id="+id).executeQuery()
                 ) {
             if (r.next()) {
-                return new FlagData(r.getInt("id"), r.getInt("land"), LandFlags.valueOf(r.getString("flag")), LandFlags.LandFlagSetting.values()[r.getInt("value")-1]);
+                return new FlagData(r.getInt("id"), r.getInt("land"), LandFlags.valueOf(r.getString("flag")), LandFlags.LandFlagSetting.values()[r.getInt("value")]);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -302,7 +296,7 @@ public class DatabaseManager {
                 ResultSet r = c.prepareStatement("SELECT * from Flags where land="+land+" and flag=\""+flag+"\"").executeQuery()
         ) {
             if (r.next()) {
-                return new FlagData(r.getInt("id"), r.getInt("land"), LandFlags.valueOf(r.getString("flag")), LandFlags.LandFlagSetting.values()[r.getInt("value")-1]);
+                return new FlagData(r.getInt("id"), r.getInt("land"), LandFlags.valueOf(r.getString("flag")), LandFlags.LandFlagSetting.values()[r.getInt("value")]);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -310,8 +304,8 @@ public class DatabaseManager {
         return null;
     }
 
-    public FlagManager getFlagManager(int land) {
-        return this.flagManagerMap.get(land);
+    public LandManager getLandManager(int land) {
+        return this.landManagerMap.get(land);
     }
 
     @Nullable
@@ -331,12 +325,18 @@ public class DatabaseManager {
         }
         try (
                 Connection c = DriverManager.getConnection(DatabaseManager.CONNECTION);
-                PreparedStatement s = c.prepareStatement("INSERT INTO Flag (land, flag, value) VALUES(?, ?, ?)");
+                PreparedStatement s = c.prepareStatement("INSERT INTO Flags (land, flag, value) VALUES(?, ?, ?)");
+                PreparedStatement s2 = c.prepareStatement("UPDATE Flags SET value=? where land=? and flag=?")
         ) {
-            s.setInt(1, land);
-            s.setString(2, flag.toString());
-            s.setInt(3, setting.ordinal());
-            s.executeUpdate();
+            s2.setInt(1, setting.ordinal());
+            s2.setInt(2, land);
+            s2.setString(3, flag.toString());
+            if(s2.executeUpdate() == 0) {
+                s.setInt(1, land);
+                s.setString(2, flag.toString());
+                s.setInt(3, setting.ordinal());
+                s.executeUpdate();
+            }
             return getFlagFromDB(land, flag);
         } catch (SQLException e) {
             e.printStackTrace();
@@ -359,6 +359,24 @@ public class DatabaseManager {
                 }
             }
         });
+    }
+
+    public void deleteLand(int land) {
+        playerLands.removeIf(l -> l.getId() == land);
+
+        landManagerMap.remove(land).unregister();
+        try (
+                Connection c = DriverManager.getConnection(DatabaseManager.CONNECTION);
+                PreparedStatement s = c.prepareStatement("DELETE From Flags where land=?");
+                PreparedStatement s2 = c.prepareStatement("DELETE From Lands where id=?")
+        ) {
+            s.setInt(1, land);
+            s.execute();
+            s2.setInt(1, land);
+            s2.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public boolean canBuy(Location location, LandsData data) {
