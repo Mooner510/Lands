@@ -4,3 +4,4 @@ messages:
   land-create-already-exists: "&2[ &f땅 &2] &c이미 해당 이름의 땅이 있습니다."
   land-create-other-land: "&2[ &f땅 &2] &c다른 땅과 겹칩니다."
   land-create-complete: "&2[ &f땅 &2] &a땅을 구매했습니다!"
+  land-boarder: "&2[ &f땅 &2] &f경계선을 확인합니다."

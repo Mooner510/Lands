@@ -90,6 +90,16 @@ public class LandListener implements Listener {
             if(!square.in(b.getLocation())) return;
             if(check(LandFlags.USE_PLATE, e.getPlayer())) return;
             e.setCancelled(true);
+        } else if(e.getAction() == Action.LEFT_CLICK_BLOCK && b != null) {
+            if (b.getType() == Material.NOTE_BLOCK) {
+                if(!square.in(b.getLocation())) return;
+                if(check(LandFlags.PLAY_NOTE_BLOCK, e.getPlayer())) return;
+                e.setCancelled(true);
+            }else if (b.getType() == Material.JUKEBOX) {
+                if(!square.in(b.getLocation())) return;
+                if(check(LandFlags.USE_JUKEBOX, e.getPlayer())) return;
+                e.setCancelled(true);
+            }
         } else if(e.getAction() == Action.RIGHT_CLICK_BLOCK && b != null) {
             if (doors.contains(b.getType())) {
                 if(!square.in(b.getLocation())) return;
@@ -111,6 +121,18 @@ public class LandListener implements Listener {
                 if(!square.in(b.getLocation())) return;
                 if(check(LandFlags.USE_ENCHANTMENTS, e.getPlayer())) return;
                 e.setCancelled(true);
+            } else if (b.getType() == Material.REPEATER || b.getType() == Material.COMPARATOR) {
+                if(!square.in(b.getLocation())) return;
+                if(check(LandFlags.USE_REDSTONE, e.getPlayer())) return;
+                e.setCancelled(true);
+            } else if (b.getType() == Material.NOTE_BLOCK) {
+                if(!square.in(b.getLocation())) return;
+                if(check(LandFlags.EDIT_NOTE_BLOCK, e.getPlayer())) return;
+                e.setCancelled(true);
+            } else if (b.getType() == Material.JUKEBOX) {
+                if(!square.in(b.getLocation())) return;
+                if(check(LandFlags.USE_JUKEBOX, e.getPlayer())) return;
+                e.setCancelled(true);
             }
         } else if(e.getAction() == Action.RIGHT_CLICK_AIR) {
             if(e.getItem() != null) {
@@ -127,8 +149,12 @@ public class LandListener implements Listener {
     public void onInteractEntity(PlayerInteractEntityEvent e) {
         Entity entity = e.getRightClicked();
         if(entity.getType() == EntityType.ITEM_FRAME || entity.getType() == EntityType.GLOW_ITEM_FRAME) {
+            if (!square.in(entity.getLocation())) return;
+            if (check(LandFlags.USE_ITEM_FRAME, e.getPlayer())) return;
+            e.setCancelled(true);
+        } else if(entity.getType() == EntityType.VILLAGER) {
             if(!square.in(entity.getLocation())) return;
-            if(check(LandFlags.USE_ITEM_FRAME, e.getPlayer())) return;
+            if(check(LandFlags.TRADE, e.getPlayer())) return;
             e.setCancelled(true);
         } else if(entity instanceof Vehicle) {
             if(!square.in(entity.getLocation())) return;

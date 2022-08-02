@@ -16,6 +16,7 @@ import org.mooner.lands.land.db.DatabaseManager;
 
 import static org.mooner.lands.Lands.lands;
 import static org.mooner.lands.MoonerUtils.*;
+import static org.mooner.lands.gui.GUIUtils.allFlags;
 import static org.mooner.lands.gui.GUIUtils.createItem;
 
 public class FlagGUI {
@@ -27,13 +28,13 @@ public class FlagGUI {
     private long lastClick;
 
     private void updateSlot(int i, LandFlags flags, LandFlags.LandFlagSetting flag) {
-        inventory.setItem(i, createItem(flags.getMaterial(), 1,
+        inventory.setItem(i, allFlags(createItem(flags.getMaterial(), 1,
                 flag == LandFlags.LandFlagSetting.ALLOW ? "&a" :
                         flag == LandFlags.LandFlagSetting.ONLY_COOP ? "&b" :
                                 flag == LandFlags.LandFlagSetting.DEFAULT ? "&7" : "&c" + flags.getTag(),
                 "&7설정: " + (flag == LandFlags.LandFlagSetting.ALLOW ? "&a허용" :
                         flag == LandFlags.LandFlagSetting.ONLY_COOP ? "&b공유 플레이어만" :
-                                flag == LandFlags.LandFlagSetting.DEFAULT ? "&7기본" : "&c거부"), "", "&e클릭하여 설정하세요!"));
+                                flag == LandFlags.LandFlagSetting.DEFAULT ? "&7기본" : "&c거부"), "", "&e클릭하여 설정하세요!")));
     }
 
     public FlagGUI(Player p, int id, int page) {
@@ -41,15 +42,14 @@ public class FlagGUI {
         this.id = id;
         this.page = page;
         Bukkit.getScheduler().runTaskAsynchronously(lands, () -> {
-            if(inventory == null) return;
             this.player = p;
             this.inventory = Bukkit.createInventory(p, 45, chat("&f&l지역 관리하기"));
-            ItemStack pane = createItem(Material.GRAY_STAINED_GLASS_PANE, 1, " ");
+            ItemStack pane = createItem(Material.BLACK_STAINED_GLASS_PANE, 1, " ");
             for (int i = 0; i < 9; i++) {
                 inventory.setItem(i, pane);
                 inventory.setItem(i + 36, pane);
             }
-            int skip = (page - 1) * 36;
+            int skip = (page - 1) * 27;
             int slot = 9;
             boolean hasNext = false;
             for (LandFlags flags : LandFlags.values()) {
@@ -79,7 +79,7 @@ public class FlagGUI {
                     return;
                 if(e.getClickedInventory().equals(inventory)) {
                     e.setCancelled(true);
-                    if(e.getCurrentItem().getType() == Material.GRAY_STAINED_GLASS_PANE) return;
+                    if(e.getCurrentItem().getType() == Material.BLACK_STAINED_GLASS_PANE) return;
                     if(e.getCurrentItem().getType() == Material.PAPER) {
                         if(e.getSlot() == 38) {
                             new FlagGUI(player, id, page - 1);
@@ -99,7 +99,7 @@ public class FlagGUI {
                         }
                         lastClick = getTime();
                         LandFlags flags = LandFlags.values()[e.getSlot() - 9 + (page - 1) * 36];
-                        updateSlot(e.getSlot(), flags, DatabaseManager.init.getRealFlag(id, flags));
+                        updateSlot(e.getSlot(), flags, DatabaseManager.init.getFlagManager(id).nextFlagRequest(flags));
                         playSound(player, Sound.UI_BUTTON_CLICK, 0.85, 1);
                     }
                 }

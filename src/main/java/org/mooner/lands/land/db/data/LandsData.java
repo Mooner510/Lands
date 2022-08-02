@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.mooner.lands.MoonerUtils.chat;
+import static org.mooner.lands.MoonerUtils.parseString;
 
 @Getter
 public class LandsData {
@@ -28,7 +29,7 @@ public class LandsData {
         l.addAll(Arrays.asList(lore));
         l.add("&7사이즈 &6" + size * 2 + "x" + size*2);
         l.add("");
-        l.add("&7가격 : &b" + cost + "원");
+        l.add("&7가격 : &b" + parseString(cost, 1, true) + "원");
         this.lore = l.stream().map(MoonerUtils::chat).toList();
     }
 
@@ -42,7 +43,7 @@ public class LandsData {
         l.addAll(lore);
         l.add("&7사이즈 &6" + size * 2 + "x" + size*2);
         l.add("");
-        l.add("&7가격 : &b" + cost + "원");
+        l.add("&7가격 : &b" + parseString(cost, 1, true) + "원");
         this.lore = l.stream().map(MoonerUtils::chat).toList();
     }
 }

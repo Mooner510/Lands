@@ -16,7 +16,8 @@ public class FlagManager {
         this.landId = landId;
         flagMap = new HashMap<>();
         valueMap = new HashMap<>();
-        data.forEach(land -> {
+        requests = new HashMap<>();
+        if(data != null) data.forEach(land -> {
             flagMap.put(land.getFlag(), land.getId());
             valueMap.put(land.getId(), land.getSetting());
         });
@@ -52,6 +53,11 @@ public class FlagManager {
         if(!flag.isPlayerFlag() && setting == LandFlags.LandFlagSetting.ONLY_COOP) return;
         FlagData data;
         if((data = DatabaseManager.init.setFlag(landId, flag, setting)) == null) return;
+        if(setting == LandFlags.LandFlagSetting.DEFAULT) {
+            flagMap.remove(flag);
+            valueMap.remove(data.getId());
+            return;
+        }
         flagMap.put(flag, data.getId());
         valueMap.put(data.getId(), data.getSetting());
     }

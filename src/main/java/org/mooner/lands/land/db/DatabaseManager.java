@@ -28,7 +28,7 @@ import static org.mooner.lands.MoonerUtils.loadConfig;
 public class DatabaseManager {
     public static DatabaseManager init;
     public static final String CONNECTION = "jdbc:sqlite:" + dataPath + "DB/lands.db";
-    private int maxSize;
+//    private int maxSize;
     private int maxLands;
 
     private Map<String, String> message;
@@ -137,7 +137,23 @@ public class DatabaseManager {
             }
         }
 
-        maxSize = 0;
+        flagManagerMap = new HashMap<>();
+        HashMap<Integer, ArrayList<FlagData>> flags = new HashMap<>();
+        try(
+                Connection c = DriverManager.getConnection(CONNECTION);
+                ResultSet r = c.prepareStatement("SELECT * FROM Flags").executeQuery()
+        ) {
+            while(r.next()) {
+                int land = r.getInt("land");
+                flags.putIfAbsent(land, new ArrayList<>());
+                flags.get(land).add(new FlagData(r.getInt("id"), land, LandFlags.valueOf(r.getString("flag")), LandFlags.LandFlagSetting.values()[r.getInt("value")-1]));
+            }
+            Lands.lands.getLogger().info("성공적으로 Land의 설정들을 불러왔습니다.");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+//        maxSize = 0;
         playerLands = new HashSet<>();
         try(
                 Connection c = DriverManager.getConnection(CONNECTION);
@@ -145,8 +161,9 @@ public class DatabaseManager {
         ) {
             while(r.next()) {
                 String[] spawns = r.getString("spawn").split(":");
+                int id = r.getInt("id");
                 playerLands.add(new PlayerLand(
-                        r.getInt("id"),
+                        id,
                         UUID.fromString(r.getString("owner")),
                         r.getString("name"),
                         (Set<UUID>) r.getObject("coop"),
@@ -156,26 +173,10 @@ public class DatabaseManager {
                         r.getInt("size"),
                         r.getDouble("cost")
                 ));
-                maxSize = Math.max(maxSize, r.getInt("size"));
+                flagManagerMap.put(id, new FlagManager(id, flags.get(id)));
+//                maxSize = Math.max(maxSize, r.getInt("size"));
             }
             Lands.lands.getLogger().info("성공적으로 플레이어의 Land를 불러왔습니다.");
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        flagManagerMap = new HashMap<>();
-        try(
-                Connection c = DriverManager.getConnection(CONNECTION);
-                ResultSet r = c.prepareStatement("SELECT * FROM Flags").executeQuery()
-        ) {
-            HashMap<Integer, ArrayList<FlagData>> flags = new HashMap<>();
-            while(r.next()) {
-                int land = r.getInt("land");
-                flags.putIfAbsent(land, new ArrayList<>());
-                flags.get(land).add(new FlagData(r.getInt("id"), land, LandFlags.valueOf(r.getString("flag")), LandFlags.LandFlagSetting.values()[r.getInt("value")-1]));
-            }
-            flags.forEach((i, list) -> flagManagerMap.put(i, new FlagManager(i, list)));
-            Lands.lands.getLogger().info("성공적으로 Land의 설정들을 불러왔습니다.");
         } catch (SQLException e) {
             e.printStackTrace();
         }
