@@ -57,9 +57,8 @@ public class LandManager {
         } else {
             f = LandFlags.LandFlagSetting.values()[f.ordinal()+1];
         }
-        if(!flag.isPlayerFlag() && f == LandFlags.LandFlagSetting.ONLY_COOP) {
-            return nextFlagRequest(flag);
-        }
+        if(!flag.isPlayerFlag() && f == LandFlags.LandFlagSetting.ONLY_COOP)
+            f = LandFlags.LandFlagSetting.values()[f.ordinal()+1];
         requests.put(flag, f);
         return f;
     }
@@ -72,7 +71,6 @@ public class LandManager {
 
     public void setFlag(LandFlags flag, LandFlags.LandFlagSetting setting) {
         if(!flag.isPlayerFlag() && setting == LandFlags.LandFlagSetting.ONLY_COOP) return;
-        Bukkit.broadcastMessage(flag + ":" + setting);
         FlagData data;
         if((data = DatabaseManager.init.setFlag(landId, flag, setting)) == null) {
             valueMap.remove(flagMap.remove(flag));
@@ -80,7 +78,6 @@ public class LandManager {
         }
         flagMap.put(flag, data.getId());
         valueMap.put(data.getId(), data.getSetting());
-        Bukkit.broadcastMessage(flag + "?" + setting);
     }
 
     public LandFlags.LandFlagSetting getRealFlag(LandFlags flag) {
@@ -92,8 +89,8 @@ public class LandManager {
     }
 
     public LandFlags.LandFlagSetting getFlag(LandFlags flag) {
-        LandFlags.LandFlagSetting v = requests.get(flag);
-        if(v != null) return v == LandFlags.LandFlagSetting.DEFAULT ? flag.getDefaultSetting() : v;
+        LandFlags.LandFlagSetting v;// = requests.get(flag);
+//        if(v != null) return v == LandFlags.LandFlagSetting.DEFAULT ? flag.getDefaultSetting() : v;
         Integer id = flagMap.get(flag);
         if(id == null) return flag.getDefaultSetting();
         return (v = valueMap.get(id)) == null || v == LandFlags.LandFlagSetting.DEFAULT ? flag.getDefaultSetting() : v;

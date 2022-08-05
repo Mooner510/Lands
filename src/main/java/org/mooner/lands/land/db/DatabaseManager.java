@@ -64,7 +64,7 @@ public class DatabaseManager {
                                 "id INTEGER," +
                                 "owner TEXT NOT NULL," +
                                 "name TEXT NOT NULL," +
-                                "coop TEXT," +
+                                "coop BLOB," +
                                 "x INTEGER NOT NULL," +
                                 "z INTEGER NOT NULL," +
                                 "world TEXT NOT NULL," +
@@ -166,7 +166,7 @@ public class DatabaseManager {
                         id,
                         UUID.fromString(r.getString("owner")),
                         r.getString("name"),
-                        (Set<UUID>) r.getObject("coop"),
+                        (HashSet<UUID>) r.getObject("coop"),
                         r.getInt("x"),
                         r.getInt("z"),
                         new Location(Bukkit.getWorld(r.getString("world")), Double.parseDouble(spawns[0]), Double.parseDouble(spawns[1]), Double.parseDouble(spawns[2]), Float.parseFloat(spawns[3]), Float.parseFloat(spawns[4])),
@@ -205,8 +205,9 @@ public class DatabaseManager {
         message = new HashMap<>();
         FileConfiguration mConfig = loadConfig(dataPath, "config.yml");
         try {
-            if (mConfig.isSet("messages")) {
-                mConfig.getConfigurationSection("messages").getKeys(false).forEach(key -> message.put(key, chat(mConfig.getString("messages."+key))));
+            ConfigurationSection sc;
+            if ((sc = mConfig.getConfigurationSection("messages")) != null) {
+                sc.getKeys(false).forEach(key -> message.put(key, chat(mConfig.getString("messages."+key))));
             }
             maxLands = mConfig.getInt("maxLands", 4);
         } catch (Throwable e) {
@@ -264,6 +265,38 @@ public class DatabaseManager {
         return LandState.COMPLETE;
     }
 
+    public void addCoop(int land, UUID uuid) {
+        PlayerLand l = getPlayerLand(land);
+        if(l == null) return;
+        l.addCoop(uuid);
+        try (
+                Connection c = DriverManager.getConnection(DatabaseManager.CONNECTION);
+                PreparedStatement s2 = c.prepareStatement("UPDATE Lands SET coop=? where id=?")
+        ) {
+            s2.setObject(1, l.getCoop());
+            s2.setInt(2, land);
+            s2.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void removeCoop(int land, UUID uuid) {
+        PlayerLand l = getPlayerLand(land);
+        if(l == null) return;
+        l.removeCoop(uuid);
+        try (
+                Connection c = DriverManager.getConnection(DatabaseManager.CONNECTION);
+                PreparedStatement s2 = c.prepareStatement("UPDATE Lands SET coop=? where id=?")
+        ) {
+            s2.setObject(1, l.getCoop());
+            s2.setInt(2, land);
+            s2.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     public LandFlags.LandFlagSetting getRealFlag(int land, LandFlags flag) {
         LandManager manager = this.landManagerMap.get(land);
         if(manager == null) return null;
@@ -310,19 +343,6 @@ public class DatabaseManager {
 
     @Nullable
     public FlagData setFlag(int land, LandFlags flag, LandFlags.LandFlagSetting setting) {
-        if(setting == LandFlags.LandFlagSetting.DEFAULT) {
-            try (
-                    Connection c = DriverManager.getConnection(DatabaseManager.CONNECTION);
-                    PreparedStatement s = c.prepareStatement("DELETE From Flags where land=? and flag=?");
-            ) {
-                s.setInt(1, land);
-                s.setString(2, flag.toString());
-                s.execute();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
         try (
                 Connection c = DriverManager.getConnection(DatabaseManager.CONNECTION);
                 PreparedStatement s = c.prepareStatement("INSERT INTO Flags (land, flag, value) VALUES(?, ?, ?)");
@@ -405,7 +425,7 @@ public class DatabaseManager {
                         r.getInt("id"),
                         UUID.fromString(r.getString("owner")),
                         r.getString("name"),
-                        (Set<UUID>) r.getObject("coop"),
+                        (HashSet<UUID>) r.getObject("coop"),
                         r.getInt("x"),
                         r.getInt("z"),
                         new Location(Bukkit.getWorld(r.getString("world")), Double.parseDouble(spawns[0]), Double.parseDouble(spawns[1]), Double.parseDouble(spawns[2]), Float.parseFloat(spawns[3]), Float.parseFloat(spawns[4])),

@@ -449,7 +449,6 @@ public class MoonerUtils {
             b = BigDecimal.valueOf(value);
         } catch (Exception e) {
             e.printStackTrace();
-            Bukkit.broadcastMessage(value + "");
             return value + "";
         }
         b = b.setScale(0, RoundingMode.DOWN);
@@ -533,11 +532,19 @@ public class MoonerUtils {
     }
 
     public static void playSound(Location l, Sound s, double volume, double pitch) {
-        Bukkit.getScheduler().runTask(lands, () -> l.getWorld().playSound(l, s, (float) volume, (float) pitch));
+        Bukkit.getScheduler().runTask(lands, () -> {
+            World w;
+            if((w = l.getWorld()) == null) return;
+            w.playSound(l, s, (float) volume, (float) pitch);
+        });
     }
 
     public static void playSound(Location l, Sound s, double volume, double pitch, int delay) {
-        Bukkit.getScheduler().runTaskLater(lands, () -> l.getWorld().playSound(l, s, (float) volume, (float) pitch), delay);
+        Bukkit.getScheduler().runTaskLater(lands, () -> {
+            World w;
+            if((w = l.getWorld()) == null) return;
+            w.playSound(l, s, (float) volume, (float) pitch);
+        }, delay);
     }
 
     public static void playSound(Player p, String s, double volume, double pitch) {
@@ -563,7 +570,11 @@ public class MoonerUtils {
     }
 
     public static void dropExp(Location loc, int exp) {
-        if(exp > 0) Bukkit.getScheduler().runTask(lands, () -> loc.getWorld().spawn(loc, ExperienceOrb.class).setExperience(exp));
+        if(exp > 0) Bukkit.getScheduler().runTask(lands, () -> {
+            World w;
+            if((w = loc.getWorld()) == null) return;
+            w.spawn(loc, ExperienceOrb.class).setExperience(exp);
+        });
     }
 
     public static String itemToBase64(ItemStack item) {

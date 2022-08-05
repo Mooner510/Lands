@@ -29,12 +29,11 @@ public class FlagGUI {
 
     private void updateSlot(int i, LandFlags flags, LandFlags.LandFlagSetting flag) {
         inventory.setItem(i, allFlags(createItem(flags.getMaterial(), 1,
-                (flag == LandFlags.LandFlagSetting.ALLOW ? "&a" :
-                        flag == LandFlags.LandFlagSetting.ONLY_COOP ? "&b" :
-                                flag == LandFlags.LandFlagSetting.DEFAULT ? "&7" : "&c") + flags.getTag(),
-                "&7설정: " + (flag == LandFlags.LandFlagSetting.ALLOW ? "&a허용" :
-                        flag == LandFlags.LandFlagSetting.ONLY_COOP ? "&b공유 플레이어만" :
-                                flag == LandFlags.LandFlagSetting.DEFAULT ? "&7기본" : "&c거부"), "", "&e클릭하여 설정하세요!")));
+                flag.getColor() + flags.getTag(),
+                "&7설정: " + flag.getColor() + flag.getTag() +
+                        (flag == LandFlags.LandFlagSetting.DEFAULT ? flags.getDefaultSetting().getColor() + " (" + flags.getDefaultSetting().getTag() + ")" : ""),
+                "",
+                "&e클릭하여 설정하세요!")));
     }
 
     public FlagGUI(Player p, int id, int page) {
@@ -92,12 +91,12 @@ public class FlagGUI {
                         }
                     }
                     if(e.getSlot() >= 9 && e.getSlot() <= 35) {
-                        if(lastClick + 500 > getTime()) return;
+                        if(lastClick + 250 > getTime()) return;
                         lastClick = getTime();
-                        LandFlags flags = LandFlags.values()[e.getSlot() - 9 + (page - 1) * 36];
+                        LandFlags flags = LandFlags.values()[e.getSlot() - 9 + (page - 1) * 27];
                         LandFlags.LandFlagSetting flag = DatabaseManager.init.getLandManager(id).nextFlagRequest(flags);
+                        lands.getLogger().info(flag.toString());
                         updateSlot(e.getSlot(), flags, flag);
-                        Bukkit.broadcastMessage(flag.toString());
                         player.updateInventory();
                         playSound(player, Sound.UI_BUTTON_CLICK, 0.85, 1);
                     }

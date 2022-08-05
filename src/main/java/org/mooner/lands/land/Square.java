@@ -26,11 +26,11 @@ public class Square {
     }
 
     public void getOutline(Consumer<int[]> action) {
-        for (int z = -distance; z <= distance; z++) {
+        for (int z = -distance; z < distance; z++) {
             action.accept(new int[]{-distance, z});
             action.accept(new int[]{z, -distance});
         }
-        for (int z = -distance; z <= distance; z++) {
+        for (int z = -distance; z < distance; z++) {
             action.accept(new int[]{distance, z});
             action.accept(new int[]{z, distance});
         }

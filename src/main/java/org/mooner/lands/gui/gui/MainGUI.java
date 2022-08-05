@@ -89,7 +89,7 @@ public class MainGUI {
                         }
                     } else {
                         if(e.getSlot() == 8) {
-                            DatabaseManager.init.deleteLand(land.getId());
+                            new RemoveGUI(player, land);
                         } else if (e.getSlot() == 14) {
                             new FlagGUI(player, land.getId(), 1);
                         } else if(e.getSlot() == 16) {

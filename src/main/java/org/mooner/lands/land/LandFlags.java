@@ -13,11 +13,16 @@ public enum LandFlags {
     USE_BUTTON("버튼 및 레버 사용", true, LandFlagSetting.DENY, Material.STONE_BUTTON),
     USE_PLATE("갑압판 및 실 밟기", true, LandFlagSetting.DENY, Material.OAK_PRESSURE_PLATE),
     USE_REDSTONE("중계기, 비교기 사용", true, LandFlagSetting.DENY, Material.REPEATER),
-    USE_CHEST("상자 사용", true, LandFlagSetting.DENY, Material.CHEST),
+    USE_CHEST("상자, 셜커 상자, 호퍼 사용", true, LandFlagSetting.DENY, Material.CHEST),
+    USE_BED("침대 사용", true, LandFlagSetting.DENY, Material.RED_BED),
+    USE_FURNACE("화로 사용", true, LandFlagSetting.DENY, Material.FURNACE),
     USE_ANVIL("모루 사용", true, LandFlagSetting.DENY, Material.ANVIL),
+    USE_FARM_BLOCK("화분, 퇴비통 사용", true, LandFlagSetting.DENY, Material.COMPOSTER),
+    USE_BEE("양봉", true, LandFlagSetting.DENY, Material.BEE_NEST),
+    USE_LODESTONE("자석석 사용", true, LandFlagSetting.DENY, Material.LODESTONE),
     USE_ENCHANTMENTS("마법 부여대, 숫돌 사용", true, LandFlagSetting.ALLOW, Material.ENCHANTING_TABLE),
     USE_JUKEBOX("주크박스 사용", true, LandFlagSetting.DENY, Material.MUSIC_DISC_CAT),
-    PLAY_NOTE_BLOCK("노트블럭 연주", true, LandFlagSetting.DENY, Material.JUKEBOX),
+    PLAY_NOTE_BLOCK("노트블럭 연주", true, LandFlagSetting.ALLOW, Material.JUKEBOX),
     EDIT_NOTE_BLOCK("노트블럭 조율", true, LandFlagSetting.DENY, Material.NOTE_BLOCK),
     ENDER_PEARL_TELEPORT("엔더진주 사용", true, LandFlagSetting.DENY, Material.ENDER_PEARL),
     USE_ITEM_FRAME("아이템 거치대 사용", true, LandFlagSetting.DENY, Material.ITEM_FRAME),
@@ -41,11 +46,20 @@ public enum LandFlags {
     FRUIT_TELEPORT("후렴과 순간이동", true, LandFlagSetting.DENY, Material.CHORUS_FRUIT),
     EXP_PICKUP("경험치 획득", true, LandFlagSetting.ALLOW, Material.EXPERIENCE_BOTTLE);
 
+    @Getter
     public enum LandFlagSetting {
-        DEFAULT,
-        ALLOW,
-        ONLY_COOP,
-        DENY,
+        DEFAULT("&7", "기본값"),
+        ALLOW("&a", "허용"),
+        ONLY_COOP("&b", "공유 플레이어만"),
+        DENY("&c", "거부");
+
+        private final String color;
+        private final String tag;
+
+        LandFlagSetting(String c, String tag) {
+            this.color = c;
+            this.tag = tag;
+        }
     }
 
     private final String tag;

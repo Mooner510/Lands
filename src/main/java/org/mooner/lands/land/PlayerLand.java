@@ -1,11 +1,12 @@
 package org.mooner.lands.land;
 
 import lombok.Getter;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 public class PlayerLand {
     @Getter
@@ -14,7 +15,7 @@ public class PlayerLand {
     private final UUID owner;
     @Getter
     private final String name;
-    private final Set<UUID> coop;
+    private final HashSet<UUID> coop;
 
     @Getter
     private final Square square;
@@ -24,7 +25,7 @@ public class PlayerLand {
     @Getter
     private final double cost;
 
-    public PlayerLand(int id, UUID owner, String name, Set<UUID> coop, int x, int z, Location loc, int size, double cost) {
+    public PlayerLand(int id, UUID owner, String name, HashSet<UUID> coop, int x, int z, Location loc, int size, double cost) {
         this.id = id;
         this.owner = owner;
         this.name = name;
@@ -39,7 +40,29 @@ public class PlayerLand {
     }
 
     public boolean isCoop(UUID uuid) {
+        if(coop == null) return false;
         return coop.contains(uuid);
+    }
+
+    public HashSet<UUID> getCoop() {
+        return coop;
+    }
+
+    public List<Player> getCoopMembers() {
+        if(coop == null) return Collections.emptyList();
+        return coop.stream()
+                .map(Bukkit::getPlayer)
+                .filter(Objects::nonNull)
+                .sorted(Comparator.comparing(HumanEntity::getName))
+                .toList();
+    }
+
+    public void addCoop(UUID uuid) {
+        coop.add(uuid);
+    }
+
+    public void removeCoop(UUID uuid) {
+        coop.remove(uuid);
     }
 
     public int getCoopSize() {
