@@ -10,3 +10,4 @@ commands:
     description: "land"
 depend:
   - NBTAPI
+  - MoonerSethome

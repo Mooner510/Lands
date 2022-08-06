@@ -31,7 +31,6 @@ public class LandListener implements Listener {
         this.square = s;
         this.land = land;
         this.owner = DatabaseManager.init.getPlayerLand(land).getOwner();
-        Lands.lands.getLogger().info(land + ", " + owner);
     }
 
     private boolean check(LandFlags flag) {

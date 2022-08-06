@@ -6,3 +6,4 @@ messages:
   land-create-complete: "&2[ &f땅 &2] &a땅을 구매했습니다!"
   land-boarder: "&2[ &f땅 &2] &f경계선을 확인합니다."
   land-delete: "&2[ &f땅 &2] &e땅을 삭제했습니다."
+  teleport-home: "&2[ &f땅 &2] &e{1}&a땅으로 이동했습니다."

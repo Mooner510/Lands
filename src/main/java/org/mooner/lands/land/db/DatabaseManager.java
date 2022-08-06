@@ -18,7 +18,6 @@ import javax.annotation.Nullable;
 import java.io.*;
 import java.sql.*;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static org.mooner.lands.Lands.dataPath;
 import static org.mooner.lands.Lands.lands;
@@ -230,7 +229,7 @@ public class DatabaseManager {
     }
 
     public LandState setLand(UUID uuid, String name, Location location, LandsData data) {
-        Set<PlayerLand> lands = getPlayerLands(uuid);
+        List<PlayerLand> lands = getPlayerLands(uuid);
         if(lands.size() >= maxLands) return LandState.MAX_LANDS;
         if(lands.stream().anyMatch(land -> land.getName().equals(name))) return LandState.ALREADY_EXISTS;
         if(!canBuy(location, data)) return LandState.OTHER_LAND;
@@ -453,9 +452,10 @@ public class DatabaseManager {
                 .orElse(null);
     }
 
-    public Set<PlayerLand> getPlayerLands(UUID uuid) {
+    public List<PlayerLand> getPlayerLands(UUID uuid) {
         return playerLands.stream()
                 .filter(land -> land.getOwner() == uuid)
-                .collect(Collectors.toSet());
+                .sorted(Comparator.comparing(PlayerLand::getName))
+                .toList();
     }
 }

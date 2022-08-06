@@ -11,32 +11,34 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
 import org.mooner.lands.land.PlayerLand;
 import org.mooner.lands.land.db.DatabaseManager;
+import org.mooner.sethome.SetHomeAPI;
+
+import java.util.HashMap;
+import java.util.List;
 
 import static org.mooner.lands.Lands.lands;
 import static org.mooner.lands.MoonerUtils.chat;
+import static org.mooner.lands.gui.GUIUtils.allFlags;
 import static org.mooner.lands.gui.GUIUtils.createItem;
 
-public class RemoveGUI {
+public class HomeGUI {
     private Inventory inventory;
     private Player player;
     private final Click listener = new Click();
-    private int id;
+    private HashMap<Integer, PlayerLand> dataMap;
 
-    public RemoveGUI(Player p, PlayerLand land) {
+    public HomeGUI(Player p) {
         Bukkit.getScheduler().runTaskAsynchronously(lands, () -> {
             this.player = p;
-            this.id = land.getId();
-            this.inventory = Bukkit.createInventory(p, 27, chat("정말로 지역 " + land.getName() + "을(를) 삭제하시겠습니까?"));
-            for (int i = 0; i < 5; i++) {
-                int finalI = i;
-                Bukkit.getScheduler().runTaskLater(lands, () -> {
-                    inventory.setItem(11, createItem(Material.CLOCK, 5 - finalI, "&a삭제 &7(" + (5 - finalI) + ")", "", "&c주의! 되돌릴 수 없습니다!"));
-                }, i * 20);
+            dataMap = new HashMap<>();
+            List<PlayerLand> playerLands = DatabaseManager.init.getPlayerLands(p.getUniqueId());
+            int size = playerLands.size();
+            this.inventory = Bukkit.createInventory(p, size > 27 ? (size/9)+1 : 27 , chat("&f&l새로운 땅 구매:"));
+            int slot = 0;
+            for (PlayerLand land : playerLands) {
+                dataMap.put(slot, land);
+                inventory.setItem(slot++, allFlags(createItem(Material.GRASS_BLOCK, 1, "&a" + land.getName(), "&e클릭하여 이동")));
             }
-            Bukkit.getScheduler().runTaskLater(lands, () -> {
-                inventory.setItem(11, createItem(Material.GREEN_TERRACOTTA, 1, "&a삭제", "", "&c주의! 되돌릴 수 없습니다!"));
-            }, 100);
-            inventory.setItem(15, createItem(Material.RED_TERRACOTTA, 1, "&c취소"));
 
             Bukkit.getScheduler().runTask(lands, () -> {
                 Bukkit.getPluginManager().registerEvents(listener, lands);
@@ -53,11 +55,15 @@ public class RemoveGUI {
                     return;
                 if(e.getClickedInventory().equals(inventory)) {
                     e.setCancelled(true);
-                    if(e.getSlot() == 11 && e.getCurrentItem().getType() == Material.GREEN_TERRACOTTA) {
-                        DatabaseManager.init.deleteLand(id);
-                        player.sendMessage(DatabaseManager.init.getMessage("land-delete"));
+                    PlayerLand data = dataMap.get(e.getSlot());
+                    if(dataMap != null) {
+                        if (data != null) {
+                            SetHomeAPI.backHere(player);
+                            player.teleport(data.getSpawnLocation());
+                            player.sendMessage(DatabaseManager.init.getMessage("teleport-home").replace("{1}", data.getName()));
+                            player.closeInventory();
+                        }
                     }
-                    player.closeInventory();
                 }
             }
         }
