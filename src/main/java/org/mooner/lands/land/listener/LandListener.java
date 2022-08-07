@@ -298,6 +298,24 @@ public class LandListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
+    public void onForm(BlockFormEvent e) {
+        if (e.getBlock().getType() == Material.SNOW) {
+            if(!square.in(e.getBlock().getLocation())) return;
+            if(check(LandFlags.SNOW)) return;
+            e.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onFromTo(BlockFromToEvent e) {
+        if (e.getBlock().getType() == Material.LAVA) {
+            if(!square.in(e.getBlock().getLocation())) return;
+            if(check(LandFlags.LAVA_FLOW)) return;
+            e.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onDamage(EntityDamageByEntityEvent e) {
         if(e.getDamager() instanceof Player p) {
             if(p.isOp()) return;

@@ -28,6 +28,7 @@ public enum LandFlags {
     ENDER_PEARL_TELEPORT("엔더진주 사용", true, LandFlagSetting.DENY, Material.ENDER_PEARL),
     USE_ITEM_FRAME("아이템 거치대 사용", true, LandFlagSetting.DENY, Material.ITEM_FRAME),
     PROTECT_ITEM_FRAME("몹으로부터 아이템 거치대 보호", false, LandFlagSetting.DENY, Material.GLOW_ITEM_FRAME),
+    SNOW("눈 쌓임", false, LandFlagSetting.DENY, Material.SNOW),
     RIDE("탑승", true, LandFlagSetting.DENY, Material.SADDLE),
     EXPLODE("폭발", false, LandFlagSetting.DENY, Material.TNT),
     LIGHTNING("번개", false, LandFlagSetting.DENY, Material.LIGHTNING_ROD),
