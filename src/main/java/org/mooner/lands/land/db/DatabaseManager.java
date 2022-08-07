@@ -145,7 +145,7 @@ public class DatabaseManager {
             while(r.next()) {
                 int land = r.getInt("land");
                 flags.putIfAbsent(land, new ArrayList<>());
-                flags.get(land).add(new FlagData(r.getInt("id"), land, LandFlags.valueOf(r.getString("flag")), LandFlags.LandFlagSetting.values()[r.getInt("value")-1]));
+                flags.get(land).add(new FlagData(r.getInt("id"), land, LandFlags.valueOf(r.getString("flag")), LandFlags.LandFlagSetting.values()[r.getInt("value")]));
             }
             Lands.lands.getLogger().info("성공적으로 Land의 설정들을 불러왔습니다.");
         } catch (SQLException e) {

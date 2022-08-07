@@ -31,9 +31,10 @@ public class Square {
             if(z != -distance)
                 action.accept(new int[]{z, -distance});
         }
-        for (int z = -distance; z < distance; z++) {
+        for (int z = -distance; z <= distance; z++) {
             action.accept(new int[]{distance, z});
-            action.accept(new int[]{z, distance});
+            if(z != -distance)
+                action.accept(new int[]{z, distance});
         }
     }
 

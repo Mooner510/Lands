@@ -15,7 +15,7 @@ import org.bukkit.event.entity.*;
 import org.bukkit.event.player.*;
 import org.bukkit.event.weather.LightningStrikeEvent;
 import org.bukkit.event.world.StructureGrowEvent;
-import org.mooner.lands.Lands;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.mooner.lands.land.LandFlags;
 import org.mooner.lands.land.Square;
 import org.mooner.lands.land.db.DatabaseManager;
@@ -37,11 +37,11 @@ public class LandListener implements Listener {
         return DatabaseManager.init.getFlag(land, flag) == LandFlags.LandFlagSetting.ALLOW;
     }
 
-    private boolean check(LandFlags flag, Player p) {
-        if(p != null && p.getUniqueId().equals(owner)) return true;
+    private boolean check(LandFlags flag, @NonNull Player p) {
+        if(p.getUniqueId().equals(owner)) return true;
         LandFlags.LandFlagSetting s;
         if((s = DatabaseManager.init.getFlag(land, flag)) == LandFlags.LandFlagSetting.ALLOW) return true;
-        if(p != null && s == LandFlags.LandFlagSetting.ONLY_COOP) {
+        if(s == LandFlags.LandFlagSetting.ONLY_COOP) {
             return DatabaseManager.init.getPlayerLand(land).isCoop(p);
         }
         return false;
@@ -72,10 +72,40 @@ public class LandListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
+    public void onBucketFill(PlayerBucketEmptyEvent e) {
+        if(!square.in(e.getBlock().getLocation())) return;
+        if(check(LandFlags.BLOCK_PLACE, e.getPlayer())) return;
+        e.setCancelled(true);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onBreak(BlockBreakEvent e) {
         if(!square.in(e.getBlock().getLocation())) return;
         if(check(LandFlags.BLOCK_BREAK, e.getPlayer())) return;
         e.setCancelled(true);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onBucketFill(PlayerBucketFillEvent e) {
+        if(!square.in(e.getBlock().getLocation())) return;
+        if(check(LandFlags.BLOCK_BREAK, e.getPlayer())) return;
+        e.setCancelled(true);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onPistonExtend(BlockPistonExtendEvent e) {
+        if(e.getBlocks().stream().anyMatch(b -> square.in(b.getLocation()))) {
+            if (check(LandFlags.USE_PISTON)) return;
+            e.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onPistonRetract(BlockPistonRetractEvent e) {
+        if(e.getBlocks().stream().anyMatch(b -> square.in(b.getLocation()))) {
+            if (check(LandFlags.USE_PISTON)) return;
+            e.setCancelled(true);
+        }
     }
 
     private final ImmutableSet<Material> doors = ImmutableSet.of(Material.DARK_OAK_DOOR, Material.DARK_OAK_TRAPDOOR, Material.ACACIA_DOOR, Material.ACACIA_TRAPDOOR, Material.BIRCH_DOOR, Material.BIRCH_TRAPDOOR, Material.CRIMSON_DOOR, Material.CRIMSON_TRAPDOOR, Material.JUNGLE_DOOR, Material.JUNGLE_TRAPDOOR, Material.OAK_DOOR, Material.OAK_TRAPDOOR, Material.SPRUCE_DOOR, Material.SPRUCE_TRAPDOOR, Material.WARPED_DOOR, Material.WARPED_TRAPDOOR);
@@ -186,35 +216,43 @@ public class LandListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onTeleport(PlayerTeleportEvent e) {
+        final boolean to = e.getTo() != null && square.in(e.getTo());
+        final boolean from = square.in(e.getFrom());
+        if(from && !check(LandFlags.MOVE_OUT, e.getPlayer())) {
+            e.setCancelled(true);
+            return;
+        }
+        if(to && !check(LandFlags.MOVE_IN, e.getPlayer())) {
+            e.setCancelled(true);
+            return;
+        }
         if(e.getCause() == PlayerTeleportEvent.TeleportCause.ENDER_PEARL) {
-            if(!square.in(e.getFrom())) return;
-            if(check(LandFlags.ENDER_PEARL_TELEPORT, e.getPlayer()) && check(LandFlags.MOVE_IN, e.getPlayer())) return;
-            e.setCancelled(true);
+            if(to && !check(LandFlags.ENDER_PEARL_TELEPORT, e.getPlayer())) {
+                e.setCancelled(true);
+            }
         } else if(e.getCause() == PlayerTeleportEvent.TeleportCause.CHORUS_FRUIT) {
-            if(!square.in(e.getPlayer().getLocation())) return;
-            if(check(LandFlags.FRUIT_TELEPORT, e.getPlayer())) return;
-            e.setCancelled(true);
+            if(to && !check(LandFlags.FRUIT_TELEPORT, e.getPlayer())) {
+                e.setCancelled(true);
+            }
         }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onExplode(BlockExplodeEvent e) {
-        if(!square.in(e.getBlock().getLocation())) return;
-        if(check(LandFlags.EXPLODE, null)) return;
-        e.setCancelled(true);
+        if(check(LandFlags.EXPLODE)) return;
+        e.blockList().removeIf(b -> square.in(b.getLocation()));
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onExplodeEntity(EntityExplodeEvent e) {
-        if(!square.in(e.getLocation())) return;
-        if(check(LandFlags.EXPLODE, null)) return;
-        e.setCancelled(true);
+        if(check(LandFlags.EXPLODE)) return;
+        e.blockList().removeIf(b -> square.in(b.getLocation()));
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onLightning(LightningStrikeEvent e) {
         if(!square.in(e.getLightning().getLocation())) return;
-        if(check(LandFlags.LIGHTNING, null)) return;
+        if(check(LandFlags.LIGHTNING)) return;
         e.setCancelled(true);
     }
 
@@ -238,7 +276,11 @@ public class LandListener implements Listener {
     public void onSpread(BlockSpreadEvent e) {
         if (e.getBlock().getType() == Material.FIRE) {
             if(!square.in(e.getBlock().getLocation())) return;
-            if(check(LandFlags.FIRE, null)) return;
+            if(check(LandFlags.FIRE)) return;
+            e.setCancelled(true);
+        } else if (e.getBlock().getType() == Material.LAVA) {
+            if(!square.in(e.getBlock().getLocation())) return;
+            if(check(LandFlags.LAVA_FLOW)) return;
             e.setCancelled(true);
         }
     }
@@ -265,7 +307,7 @@ public class LandListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onSpawn(EntitySpawnEvent e) {
         if(!square.in(e.getLocation())) return;
-        if (check(LandFlags.ENTITY_SPAWN, null)) return;
+        if (check(LandFlags.ENTITY_SPAWN)) return;
         e.setCancelled(true);
     }
 
@@ -273,28 +315,28 @@ public class LandListener implements Listener {
     public void onBlockChange(EntityChangeBlockEvent e) {
         if (e.getEntityType() != EntityType.ENDERMAN) return;
         if(!square.in(e.getBlock().getLocation())) return;
-        if (check(LandFlags.ENDERMAN_BLOCK, null)) return;
+        if (check(LandFlags.ENDERMAN_BLOCK)) return;
         e.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onGrow(BlockGrowEvent e) {
         if(!square.in(e.getBlock().getLocation())) return;
-        if (check(LandFlags.GROW, null)) return;
+        if (check(LandFlags.GROW)) return;
         e.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onStructureGrow(StructureGrowEvent e) {
         if(!square.in(e.getLocation())) return;
-        if (check(LandFlags.GROW, null)) return;
+        if (check(LandFlags.GROW)) return;
         e.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPickupEXP(PlayerExpChangeEvent e) {
         if(!square.in(e.getPlayer().getLocation())) return;
-        if (check(LandFlags.EXP_PICKUP, null)) return;
+        if (check(LandFlags.EXP_PICKUP)) return;
         e.setAmount(0);
     }
 }
