@@ -32,7 +32,7 @@ public class MainGUI {
     private final PlayerLand land;
 
     public MainGUI(Player p) {
-        this.land = DatabaseManager.init.getCurrentLand(p.getLocation());
+        this.land = DatabaseManager.init.getCurrentLand(p);
         Bukkit.getScheduler().runTaskAsynchronously(lands, () -> {
             this.player = p;
             if(land == null) {
@@ -90,6 +90,8 @@ public class MainGUI {
                     } else {
                         if(e.getSlot() == 8) {
                             new RemoveGUI(player, land);
+                        } else if (e.getSlot() == 10) {
+                            new PlayerGUI(player, land);
                         } else if (e.getSlot() == 14) {
                             new FlagGUI(player, land.getId(), 1);
                         } else if(e.getSlot() == 16) {

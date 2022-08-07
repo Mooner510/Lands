@@ -3,9 +3,11 @@ package org.mooner.lands.land;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.entity.HumanEntity;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
+import org.mooner.lands.land.db.LandCoopState;
 
+import javax.annotation.Nullable;
 import java.util.*;
 
 public class PlayerLand {
@@ -15,7 +17,8 @@ public class PlayerLand {
     private final UUID owner;
     @Getter
     private final String name;
-    private final HashSet<UUID> coop;
+    @Nullable
+    private HashSet<UUID> coop;
 
     @Getter
     private final Square square;
@@ -25,7 +28,7 @@ public class PlayerLand {
     @Getter
     private final double cost;
 
-    public PlayerLand(int id, UUID owner, String name, HashSet<UUID> coop, int x, int z, Location loc, int size, double cost) {
+    public PlayerLand(int id, UUID owner, String name, @Nullable HashSet<UUID> coop, int x, int z, Location loc, int size, double cost) {
         this.id = id;
         this.owner = owner;
         this.name = name;
@@ -48,21 +51,52 @@ public class PlayerLand {
         return coop;
     }
 
-    public List<Player> getCoopMembers() {
+    public List<OfflinePlayer> getCoopMembers() {
         if(coop == null) return Collections.emptyList();
         return coop.stream()
-                .map(Bukkit::getPlayer)
-                .filter(Objects::nonNull)
-                .sorted(Comparator.comparing(HumanEntity::getName))
+                .map(Bukkit::getOfflinePlayer)
+                .sorted(Comparator.comparing(OfflinePlayer::getName))
                 .toList();
     }
 
-    public void addCoop(UUID uuid) {
-        coop.add(uuid);
+    public LandCoopState addCoop(String name) {
+        final OfflinePlayer offlinePlayer = Arrays.stream(Bukkit.getOfflinePlayers())
+                .filter(p -> p.getName() != null && p.getName().equalsIgnoreCase(name))
+                .findFirst()
+                .orElse(null);
+        if(offlinePlayer == null) return LandCoopState.NOT_FOUND;
+        if(coop != null) {
+            if (coop.size() <= 5) return LandCoopState.MAX_PLAYER;
+            if (coop.contains(offlinePlayer.getUniqueId())) return LandCoopState.ALREADY_EXISTS;
+        } else coop = new HashSet<>();
+        coop.add(offlinePlayer.getUniqueId());
+        return LandCoopState.COMPLETE;
     }
 
-    public void removeCoop(UUID uuid) {
+    public LandCoopState addCoop(UUID uuid) {
+        if(uuid == null) return LandCoopState.NOT_FOUND;
+        if(coop != null) {
+            if (coop.size() <= 5) return LandCoopState.MAX_PLAYER;
+            if (coop.contains(uuid)) return LandCoopState.ALREADY_EXISTS;
+        } else coop = new HashSet<>();
+        coop.add(uuid);
+        return LandCoopState.COMPLETE;
+    }
+
+    public LandCoopState removeCoop(String name) {
+        final OfflinePlayer offlinePlayer = Arrays.stream(Bukkit.getOfflinePlayers())
+                .filter(p -> p.getName() != null && p.getName().equalsIgnoreCase(name))
+                .findFirst()
+                .orElse(null);
+        if(offlinePlayer == null || !coop.contains(offlinePlayer.getUniqueId())) return LandCoopState.NOT_FOUND;
+        coop.remove(offlinePlayer.getUniqueId());
+        return LandCoopState.COMPLETE;
+    }
+
+    public LandCoopState removeCoop(UUID uuid) {
+        if(uuid == null || !coop.contains(uuid)) return LandCoopState.NOT_FOUND;
         coop.remove(uuid);
+        return LandCoopState.COMPLETE;
     }
 
     public int getCoopSize() {

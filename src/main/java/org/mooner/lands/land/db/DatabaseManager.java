@@ -6,6 +6,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
 import org.mooner.lands.Lands;
 import org.mooner.lands.land.LandManager;
 import org.mooner.lands.land.LandFlags;
@@ -264,10 +265,11 @@ public class DatabaseManager {
         return LandState.COMPLETE;
     }
 
-    public void addCoop(int land, UUID uuid) {
+    public LandCoopState addCoop(int land, String name) {
         PlayerLand l = getPlayerLand(land);
-        if(l == null) return;
-        l.addCoop(uuid);
+        if(l == null) return LandCoopState.NOT_FOUND_LAND;
+        final LandCoopState state = l.addCoop(name);
+        if (state != LandCoopState.COMPLETE) return state;
         try (
                 Connection c = DriverManager.getConnection(DatabaseManager.CONNECTION);
                 PreparedStatement s2 = c.prepareStatement("UPDATE Lands SET coop=? where id=?")
@@ -278,12 +280,14 @@ public class DatabaseManager {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        return state;
     }
 
-    public void removeCoop(int land, UUID uuid) {
+    public LandCoopState addCoop(int land, UUID uuid) {
         PlayerLand l = getPlayerLand(land);
-        if(l == null) return;
-        l.removeCoop(uuid);
+        if(l == null) return LandCoopState.NOT_FOUND_LAND;
+        final LandCoopState state = l.addCoop(uuid);
+        if (state != LandCoopState.COMPLETE) return state;
         try (
                 Connection c = DriverManager.getConnection(DatabaseManager.CONNECTION);
                 PreparedStatement s2 = c.prepareStatement("UPDATE Lands SET coop=? where id=?")
@@ -294,6 +298,43 @@ public class DatabaseManager {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        return state;
+    }
+
+    public LandCoopState removeCoop(int land, String name) {
+        PlayerLand l = getPlayerLand(land);
+        if(l == null) return LandCoopState.NOT_FOUND_LAND;
+        final LandCoopState state = l.removeCoop(name);
+        if (state != LandCoopState.COMPLETE) return state;
+        try (
+                Connection c = DriverManager.getConnection(DatabaseManager.CONNECTION);
+                PreparedStatement s2 = c.prepareStatement("UPDATE Lands SET coop=? where id=?")
+        ) {
+            s2.setObject(1, l.getCoop());
+            s2.setInt(2, land);
+            s2.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return state;
+    }
+
+    public LandCoopState removeCoop(int land, UUID uuid) {
+        PlayerLand l = getPlayerLand(land);
+        if(l == null) return LandCoopState.NOT_FOUND_LAND;
+        final LandCoopState state = l.removeCoop(uuid);
+        if (state != LandCoopState.COMPLETE) return state;
+        try (
+                Connection c = DriverManager.getConnection(DatabaseManager.CONNECTION);
+                PreparedStatement s2 = c.prepareStatement("UPDATE Lands SET coop=? where id=?")
+        ) {
+            s2.setObject(1, l.getCoop());
+            s2.setInt(2, land);
+            s2.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return state;
     }
 
     public LandFlags.LandFlagSetting getRealFlag(int land, LandFlags flag) {
@@ -403,13 +444,21 @@ public class DatabaseManager {
         return playerLands.stream().noneMatch(land -> land.getSquare().isIn(s));
     }
 
-    public PlayerLand getCurrentLand(Location location) {
+    public PlayerLand getCurrentLand(Player p) {
+        final Location location = p.getLocation();
         final int x = location.getBlockX();
         final int z = location.getBlockZ();
-        return playerLands.stream()
+        final UUID uuid = p.getUniqueId();
+        if(p.isOp())
+            return playerLands.stream()
                 .filter(land -> land.getSquare().in(x, z))
                 .findFirst()
                 .orElse(null);
+        else
+            return playerLands.stream()
+                    .filter(land -> land.getOwner().equals(uuid) && land.getSquare().in(x, z))
+                    .findFirst()
+                    .orElse(null);
     }
 
     @SuppressWarnings("unchecked")

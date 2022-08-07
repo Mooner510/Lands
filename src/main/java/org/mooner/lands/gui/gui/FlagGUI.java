@@ -91,7 +91,7 @@ public class FlagGUI {
                         }
                     }
                     if(e.getSlot() >= 9 && e.getSlot() <= 35) {
-                        if(lastClick + 250 > getTime()) return;
+                        if(lastClick + 350 > getTime()) return;
                         lastClick = getTime();
                         LandFlags flags = LandFlags.values()[e.getSlot() - 9 + (page - 1) * 27];
                         LandFlags.LandFlagSetting flag = DatabaseManager.init.getLandManager(id).nextFlagRequest(flags);
