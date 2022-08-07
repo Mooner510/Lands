@@ -46,7 +46,6 @@ public class DatabaseManager {
         }
     }
 
-    @SuppressWarnings("unchecked")
     public void setUp() {
         new File(dataPath+"DB/").mkdirs();
         File db = new File(dataPath + "DB/", "lands.db");
@@ -64,7 +63,7 @@ public class DatabaseManager {
                                 "id INTEGER," +
                                 "owner TEXT NOT NULL," +
                                 "name TEXT NOT NULL," +
-                                "coop BLOB," +
+                                "coop TEXT," +
                                 "x INTEGER NOT NULL," +
                                 "z INTEGER NOT NULL," +
                                 "world TEXT NOT NULL," +
@@ -166,7 +165,7 @@ public class DatabaseManager {
                         id,
                         UUID.fromString(r.getString("owner")),
                         r.getString("name"),
-                        (HashSet<UUID>) r.getObject("coop"),
+                        r.getString("coop"),
                         r.getInt("x"),
                         r.getInt("z"),
                         new Location(Bukkit.getWorld(r.getString("world")), Double.parseDouble(spawns[0]), Double.parseDouble(spawns[1]), Double.parseDouble(spawns[2]), Float.parseFloat(spawns[3]), Float.parseFloat(spawns[4])),
@@ -274,7 +273,7 @@ public class DatabaseManager {
                 Connection c = DriverManager.getConnection(DatabaseManager.CONNECTION);
                 PreparedStatement s2 = c.prepareStatement("UPDATE Lands SET coop=? where id=?")
         ) {
-            s2.setObject(1, l.getCoop());
+            s2.setString(1, l.getCoop());
             s2.setInt(2, land);
             s2.executeUpdate();
         } catch (SQLException e) {
@@ -292,7 +291,7 @@ public class DatabaseManager {
                 Connection c = DriverManager.getConnection(DatabaseManager.CONNECTION);
                 PreparedStatement s2 = c.prepareStatement("UPDATE Lands SET coop=? where id=?")
         ) {
-            s2.setObject(1, l.getCoop());
+            s2.setString(1, l.getCoop());
             s2.setInt(2, land);
             s2.executeUpdate();
         } catch (SQLException e) {
@@ -310,7 +309,7 @@ public class DatabaseManager {
                 Connection c = DriverManager.getConnection(DatabaseManager.CONNECTION);
                 PreparedStatement s2 = c.prepareStatement("UPDATE Lands SET coop=? where id=?")
         ) {
-            s2.setObject(1, l.getCoop());
+            s2.setString(1, l.getCoop());
             s2.setInt(2, land);
             s2.executeUpdate();
         } catch (SQLException e) {
@@ -328,7 +327,7 @@ public class DatabaseManager {
                 Connection c = DriverManager.getConnection(DatabaseManager.CONNECTION);
                 PreparedStatement s2 = c.prepareStatement("UPDATE Lands SET coop=? where id=?")
         ) {
-            s2.setObject(1, l.getCoop());
+            s2.setString(1, l.getCoop());
             s2.setInt(2, land);
             s2.executeUpdate();
         } catch (SQLException e) {
@@ -461,7 +460,6 @@ public class DatabaseManager {
                     .orElse(null);
     }
 
-    @SuppressWarnings("unchecked")
     public PlayerLand getPlayerLandInDB(UUID uuid, String name) {
         try (
                 Connection c = DriverManager.getConnection(CONNECTION);
@@ -473,7 +471,7 @@ public class DatabaseManager {
                         r.getInt("id"),
                         UUID.fromString(r.getString("owner")),
                         r.getString("name"),
-                        (HashSet<UUID>) r.getObject("coop"),
+                        r.getString("coop"),
                         r.getInt("x"),
                         r.getInt("z"),
                         new Location(Bukkit.getWorld(r.getString("world")), Double.parseDouble(spawns[0]), Double.parseDouble(spawns[1]), Double.parseDouble(spawns[2]), Float.parseFloat(spawns[3]), Float.parseFloat(spawns[4])),

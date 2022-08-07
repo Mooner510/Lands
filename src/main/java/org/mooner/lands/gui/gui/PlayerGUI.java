@@ -57,7 +57,7 @@ public class PlayerGUI {
             int slot = 10;
             for (OfflinePlayer member : land.getCoopMembers()) {
                 players.put(slot, member.getUniqueId());
-                inventory.setItem(slot++, createHead(member, 1, member.getName(), "&e클릭하여 제거"));
+                inventory.setItem(slot++, createHead(member, 1, "&b" + member.getName(), "&e클릭하여 제거"));
             }
 
             Bukkit.getScheduler().runTask(lands, () -> {

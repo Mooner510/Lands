@@ -9,6 +9,7 @@ import org.mooner.lands.land.db.LandCoopState;
 
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class PlayerLand {
     @Getter
@@ -28,11 +29,14 @@ public class PlayerLand {
     @Getter
     private final double cost;
 
-    public PlayerLand(int id, UUID owner, String name, @Nullable HashSet<UUID> coop, int x, int z, Location loc, int size, double cost) {
+    public PlayerLand(int id, UUID owner, String name, @Nullable String coop, int x, int z, Location loc, int size, double cost) {
         this.id = id;
         this.owner = owner;
         this.name = name;
-        this.coop = coop;
+        if(coop != null) {
+            this.coop = Arrays.stream(coop.split(", "))
+                    .map(UUID::fromString).collect(Collectors.toCollection(HashSet::new));
+        }
         this.square = new Square(x, z, size);
         this.spawnLocation = loc;
         this.cost = cost;
@@ -47,8 +51,10 @@ public class PlayerLand {
         return coop.contains(uuid);
     }
 
-    public HashSet<UUID> getCoop() {
-        return coop;
+    public String getCoop() {
+        if(coop == null || coop.isEmpty()) return null;
+        String s = coop.toString();
+        return s.substring(1, s.length() - 1);
     }
 
     public List<OfflinePlayer> getCoopMembers() {
@@ -66,7 +72,7 @@ public class PlayerLand {
                 .orElse(null);
         if(offlinePlayer == null) return LandCoopState.NOT_FOUND;
         if(coop != null) {
-            if (coop.size() <= 5) return LandCoopState.MAX_PLAYER;
+            if (coop.size() >= 5) return LandCoopState.MAX_PLAYER;
             if (coop.contains(offlinePlayer.getUniqueId())) return LandCoopState.ALREADY_EXISTS;
         } else coop = new HashSet<>();
         coop.add(offlinePlayer.getUniqueId());
@@ -76,7 +82,7 @@ public class PlayerLand {
     public LandCoopState addCoop(UUID uuid) {
         if(uuid == null) return LandCoopState.NOT_FOUND;
         if(coop != null) {
-            if (coop.size() <= 5) return LandCoopState.MAX_PLAYER;
+            if (coop.size() >= 5) return LandCoopState.MAX_PLAYER;
             if (coop.contains(uuid)) return LandCoopState.ALREADY_EXISTS;
         } else coop = new HashSet<>();
         coop.add(uuid);
@@ -84,6 +90,7 @@ public class PlayerLand {
     }
 
     public LandCoopState removeCoop(String name) {
+        if(coop == null) return LandCoopState.NOT_FOUND;
         final OfflinePlayer offlinePlayer = Arrays.stream(Bukkit.getOfflinePlayers())
                 .filter(p -> p.getName() != null && p.getName().equalsIgnoreCase(name))
                 .findFirst()
@@ -94,7 +101,7 @@ public class PlayerLand {
     }
 
     public LandCoopState removeCoop(UUID uuid) {
-        if(uuid == null || !coop.contains(uuid)) return LandCoopState.NOT_FOUND;
+        if(coop == null || uuid == null || !coop.contains(uuid)) return LandCoopState.NOT_FOUND;
         coop.remove(uuid);
         return LandCoopState.COMPLETE;
     }
