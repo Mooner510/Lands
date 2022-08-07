@@ -290,10 +290,6 @@ public class LandListener implements Listener {
             if(!square.in(e.getBlock().getLocation())) return;
             if(check(LandFlags.FIRE)) return;
             e.setCancelled(true);
-        } else if (e.getBlock().getType() == Material.LAVA) {
-            if(!square.in(e.getBlock().getLocation())) return;
-            if(check(LandFlags.LAVA_FLOW)) return;
-            e.setCancelled(true);
         }
     }
 
