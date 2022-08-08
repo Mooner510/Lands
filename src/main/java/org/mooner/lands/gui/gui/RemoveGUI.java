@@ -30,11 +30,13 @@ public class RemoveGUI {
             for (int i = 0; i < 5; i++) {
                 int finalI = i;
                 Bukkit.getScheduler().runTaskLater(lands, () -> {
-                    inventory.setItem(11, createItem(Material.CLOCK, 5 - finalI, "&a삭제 &7(" + (5 - finalI) + ")", "", "&c주의! 되돌릴 수 없습니다!"));
+                    if(inventory != null)
+                        inventory.setItem(11, createItem(Material.CLOCK, 5 - finalI, "&a삭제 &7(" + (5 - finalI) + ")", "", "&c주의! 되돌릴 수 없습니다!"));
                 }, i * 20);
             }
             Bukkit.getScheduler().runTaskLater(lands, () -> {
-                inventory.setItem(11, createItem(Material.GREEN_TERRACOTTA, 1, "&a삭제", "", "&c주의! 되돌릴 수 없습니다!"));
+                if(inventory != null)
+                    inventory.setItem(11, createItem(Material.GREEN_TERRACOTTA, 1, "&a삭제", "", "&c주의! 되돌릴 수 없습니다!"));
             }, 100);
             inventory.setItem(15, createItem(Material.RED_TERRACOTTA, 1, "&c취소"));
 
@@ -53,6 +55,7 @@ public class RemoveGUI {
                     return;
                 if(e.getClickedInventory().equals(inventory)) {
                     e.setCancelled(true);
+                    if(e.getCurrentItem().getType() == Material.CLOCK) return;
                     if(e.getSlot() == 11 && e.getCurrentItem().getType() == Material.GREEN_TERRACOTTA) {
                         DatabaseManager.init.deleteLand(id);
                         player.sendMessage(DatabaseManager.init.getMessage("land-delete"));

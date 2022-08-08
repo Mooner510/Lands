@@ -4,10 +4,11 @@ main: org.mooner.lands.Lands
 api-version: 1.18
 authors: [ Mooner510 ]
 description: Mooner's Land Plugin
+depend:
+  - NBTAPI
+  - MoonerSethome
+  - ShopChest-1.18
 
 commands:
   land:
     description: "land"
-depend:
-  - NBTAPI
-  - MoonerSethome

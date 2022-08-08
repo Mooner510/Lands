@@ -27,7 +27,7 @@ import static org.mooner.lands.MoonerUtils.loadConfig;
 
 public class DatabaseManager {
     public static DatabaseManager init;
-    public static final String CONNECTION = "jdbc:sqlite:" + dataPath + "DB/lands.db";
+    private static final String CONNECTION = "jdbc:sqlite:" + dataPath + "DB/lands.db";
 //    private int maxSize;
     private int maxLands;
 
