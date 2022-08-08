@@ -23,6 +23,7 @@ public enum LandFlags {
     USE_ENCHANTMENTS("마법 부여대, 숫돌 사용", true, LandFlagSetting.ALLOW, Material.ENCHANTING_TABLE),
     USE_JUKEBOX("주크박스 사용", true, LandFlagSetting.DENY, Material.MUSIC_DISC_CAT),
     USE_PISTON("외부 피스톤 영향", false, LandFlagSetting.DENY, Material.PISTON),
+    CREATE_SHOP("상점 생성", true, LandFlagSetting.DENY, Material.GOLD_INGOT),
     PLAY_NOTE_BLOCK("노트블럭 연주", true, LandFlagSetting.ALLOW, Material.JUKEBOX),
     EDIT_NOTE_BLOCK("노트블럭 조율", true, LandFlagSetting.DENY, Material.NOTE_BLOCK),
     ENDER_PEARL_TELEPORT("엔더진주 사용", true, LandFlagSetting.DENY, Material.ENDER_PEARL),

@@ -1,6 +1,7 @@
 package org.mooner.lands.land.listener;
 
 import com.google.common.collect.ImmutableSet;
+import de.epiceric.shopchest.event.ShopCreateEvent;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
@@ -309,6 +310,13 @@ public class LandListener implements Listener {
             if(check(LandFlags.LAVA_FLOW)) return;
             e.setCancelled(true);
         }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onShopCreate(ShopCreateEvent e) {
+        if(!square.in(e.getShop().getLocation())) return;
+        if(check(LandFlags.CREATE_SHOP)) return;
+        e.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
