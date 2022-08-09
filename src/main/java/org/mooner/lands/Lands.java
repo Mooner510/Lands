@@ -45,6 +45,7 @@ public final class Lands extends JavaPlugin {
                 }
                 b = command.execute(sender, cmd, arg);
             }
+//            b = CommandUtils.runCommand(sender, cmd, arg);
         } catch (Exception e) {
             e.printStackTrace();
             if(this.getDescription().getCommands().containsKey(cmd.getName())) {
