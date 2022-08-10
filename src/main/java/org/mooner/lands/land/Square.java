@@ -33,7 +33,7 @@ public class Square {
         }
         for (int z = -distance; z <= distance; z++) {
             action.accept(new int[]{distance, z});
-            if(z != -distance)
+            if(z != distance)
                 action.accept(new int[]{z, distance});
         }
     }

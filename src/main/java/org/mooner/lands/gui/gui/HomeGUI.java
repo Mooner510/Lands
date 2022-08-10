@@ -33,7 +33,7 @@ public class HomeGUI {
             dataMap = new HashMap<>();
             List<PlayerLand> playerLands = DatabaseManager.init.getPlayerLands(p.getUniqueId());
             int size = playerLands.size();
-            this.inventory = Bukkit.createInventory(p, size > 27 ? (size/9)+1 : 27 , chat("&f&l새로운 땅 구매:"));
+            this.inventory = Bukkit.createInventory(p, size > 27 ? (size/9)+1 : 27 , chat("소유한 지역 목록"));
             int slot = 0;
             for (PlayerLand land : playerLands) {
                 dataMap.put(slot, land);

@@ -5,5 +5,6 @@ public enum LandState {
     ALREADY_EXISTS,
     OTHER_LAND,
     NOT_FOUND,
+    NO_WORLD,
     COMPLETE
 }

@@ -34,6 +34,7 @@ public class DatabaseManager {
     private Map<String, String> message;
 //    private Map<String, List<String>> listMessage;
 
+    private Set<String> worlds;
     private Map<Integer, LandManager> landManagerMap;
     private Map<String, LandsData> landsData;
     private Set<PlayerLand> playerLands;
@@ -94,6 +95,55 @@ public class DatabaseManager {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
+        landManagerMap = new HashMap<>();
+        HashMap<Integer, ArrayList<FlagData>> flags = new HashMap<>();
+        try(
+                Connection c = DriverManager.getConnection(CONNECTION);
+                ResultSet r = c.prepareStatement("SELECT * FROM Flags").executeQuery()
+        ) {
+            while(r.next()) {
+                int land = r.getInt("land");
+                flags.putIfAbsent(land, new ArrayList<>());
+                flags.get(land).add(new FlagData(r.getInt("id"), land, LandFlags.valueOf(r.getString("flag")), LandFlags.LandFlagSetting.values()[r.getInt("value")]));
+            }
+            Lands.lands.getLogger().info("성공적으로 Land의 설정들을 불러왔습니다.");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+//        maxSize = 0;
+        playerLands = new HashSet<>();
+        try(
+                Connection c = DriverManager.getConnection(CONNECTION);
+                ResultSet r = c.prepareStatement("SELECT * FROM Lands").executeQuery()
+        ) {
+            while(r.next()) {
+                String[] spawns = r.getString("spawn").split(":");
+                int id = r.getInt("id");
+                // TODO: 2022-08-11 PlayerLand getFindSize() 
+                PlayerLand land = new PlayerLand(
+                        id,
+                        UUID.fromString(r.getString("owner")),
+                        r.getString("name"),
+                        r.getString("coop"),
+                        r.getInt("x"),
+                        r.getInt("z"),
+                        new Location(Bukkit.getWorld(r.getString("world")), Double.parseDouble(spawns[0]), Double.parseDouble(spawns[1]), Double.parseDouble(spawns[2]), Float.parseFloat(spawns[3]), Float.parseFloat(spawns[4])),
+                        r.getInt("size"),
+                        r.getDouble("cost")
+                );
+                playerLands.add(land);
+                landManagerMap.put(id, new LandManager(land, flags.get(id)));
+//                maxSize = Math.max(maxSize, r.getInt("size"));
+            }
+            Lands.lands.getLogger().info("성공적으로 플레이어의 Land를 불러왔습니다.");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void update() {
         File f = new File(dataPath, "lands.yml");
         if(!f.exists()) {
             try {
@@ -136,53 +186,6 @@ public class DatabaseManager {
             }
         }
 
-        landManagerMap = new HashMap<>();
-        HashMap<Integer, ArrayList<FlagData>> flags = new HashMap<>();
-        try(
-                Connection c = DriverManager.getConnection(CONNECTION);
-                ResultSet r = c.prepareStatement("SELECT * FROM Flags").executeQuery()
-        ) {
-            while(r.next()) {
-                int land = r.getInt("land");
-                flags.putIfAbsent(land, new ArrayList<>());
-                flags.get(land).add(new FlagData(r.getInt("id"), land, LandFlags.valueOf(r.getString("flag")), LandFlags.LandFlagSetting.values()[r.getInt("value")]));
-            }
-            Lands.lands.getLogger().info("성공적으로 Land의 설정들을 불러왔습니다.");
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-//        maxSize = 0;
-        playerLands = new HashSet<>();
-        try(
-                Connection c = DriverManager.getConnection(CONNECTION);
-                ResultSet r = c.prepareStatement("SELECT * FROM Lands").executeQuery()
-        ) {
-            while(r.next()) {
-                String[] spawns = r.getString("spawn").split(":");
-                int id = r.getInt("id");
-                PlayerLand land = new PlayerLand(
-                        id,
-                        UUID.fromString(r.getString("owner")),
-                        r.getString("name"),
-                        r.getString("coop"),
-                        r.getInt("x"),
-                        r.getInt("z"),
-                        new Location(Bukkit.getWorld(r.getString("world")), Double.parseDouble(spawns[0]), Double.parseDouble(spawns[1]), Double.parseDouble(spawns[2]), Float.parseFloat(spawns[3]), Float.parseFloat(spawns[4])),
-                        r.getInt("size"),
-                        r.getDouble("cost")
-                );
-                playerLands.add(land);
-                landManagerMap.put(id, new LandManager(land, flags.get(id)));
-//                maxSize = Math.max(maxSize, r.getInt("size"));
-            }
-            Lands.lands.getLogger().info("성공적으로 플레이어의 Land를 불러왔습니다.");
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void update() {
         landsData = new HashMap<>();
         FileConfiguration config = loadConfig(dataPath, "lands.yml");
         try {
@@ -190,14 +193,14 @@ public class DatabaseManager {
                 ConfigurationSection c = config.getConfigurationSection(key);
                 try {
                     if (c != null)
-                        landsData.put(c.getString("name"), new LandsData(chat(c.getString("name")), Material.valueOf(c.getString("material", "").toUpperCase().replace(" ", "_")), c.getInt("size"), c.getDouble("cost"), c.getStringList("lore")));
+                        landsData.put(c.getString("name"), new LandsData(chat(c.getString("name")), Material.valueOf(c.getString("material", "").toUpperCase().replace(" ", "_")), c.getInt("size"), c.getDouble("cost"), c.getDouble("moreSize", 1), c.getStringList("lore")));
                 } catch (Throwable e) {
                     lands.getLogger().warning(e.getMessage());
                     e.printStackTrace();
                 }
             });
         } catch (Throwable e) {
-            lands.getLogger().warning("저장된 Lands를 불러오는 도중 오류가 발생했습니다.");
+            lands.getLogger().warning("Lands config를 불러오는 도중 오류가 발생했습니다.");
             e.printStackTrace();
         }
 
@@ -208,9 +211,12 @@ public class DatabaseManager {
             if ((sc = mConfig.getConfigurationSection("messages")) != null) {
                 sc.getKeys(false).forEach(key -> message.put(key, chat(mConfig.getString("messages."+key))));
             }
+            if(mConfig.isSet("worlds")) {
+                worlds = new HashSet<>(mConfig.getStringList("worlds"));
+            }
             maxLands = mConfig.getInt("maxLands", 4);
         } catch (Throwable e) {
-            lands.getLogger().warning("저장된 Lands를 불러오는 도중 오류가 발생했습니다.");
+            lands.getLogger().warning("config를 불러오는 도중 오류가 발생했습니다.");
             e.printStackTrace();
         }
     }
@@ -228,7 +234,13 @@ public class DatabaseManager {
         return message.getOrDefault(s, s);
     }
 
+    public boolean notContainsWorld(World w) {
+        if(w == null) return false;
+        return worlds.contains(w.getName());
+    }
+
     public LandState setLand(UUID uuid, String name, Location location, LandsData data) {
+        if(notContainsWorld(location.getWorld())) return LandState.NO_WORLD;
         List<PlayerLand> lands = getPlayerLands(uuid);
         if(lands.size() >= maxLands) return LandState.MAX_LANDS;
         if(lands.stream().anyMatch(land -> land.getName().equals(name))) return LandState.ALREADY_EXISTS;
@@ -439,7 +451,7 @@ public class DatabaseManager {
     }
 
     public boolean canBuy(Location location, LandsData data) {
-        Square s = new Square(location.getBlockX(), location.getBlockZ(), data.getSize());
+        Square s = new Square(location.getBlockX(), location.getBlockZ(), data.getFindSize());
         return playerLands.stream().noneMatch(land -> land.getSquare().isIn(s));
     }
 
