@@ -1,6 +1,7 @@
 package org.mooner.lands.command.commands;
 
 import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.mooner.lands.command.IPlayerCommand;
@@ -20,7 +21,7 @@ public class Cmd implements IPlayerCommand {
     }
 
     @Override
-    public List<String> tabComplete(Command cmd, String[] arg) {
+    public List<String> tabComplete(CommandSender sender, Command cmd, String[] arg) {
         return Collections.emptyList();
     }
 }

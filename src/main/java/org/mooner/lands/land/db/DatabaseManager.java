@@ -30,6 +30,7 @@ public class DatabaseManager {
     private static final String CONNECTION = "jdbc:sqlite:" + dataPath + "DB/lands.db";
 //    private int maxSize;
     private int maxLands;
+    private int moreFindDistance;
 
     private Map<String, String> message;
 //    private Map<String, List<String>> listMessage;
@@ -45,6 +46,10 @@ public class DatabaseManager {
         } catch (Exception x) {
             x.printStackTrace();
         }
+    }
+
+    public int getMoreFindDistance() {
+        return moreFindDistance;
     }
 
     public void setUp() {
@@ -121,7 +126,6 @@ public class DatabaseManager {
             while(r.next()) {
                 String[] spawns = r.getString("spawn").split(":");
                 int id = r.getInt("id");
-                // TODO: 2022-08-11 PlayerLand getFindSize() 
                 PlayerLand land = new PlayerLand(
                         id,
                         UUID.fromString(r.getString("owner")),
@@ -193,7 +197,7 @@ public class DatabaseManager {
                 ConfigurationSection c = config.getConfigurationSection(key);
                 try {
                     if (c != null)
-                        landsData.put(c.getString("name"), new LandsData(chat(c.getString("name")), Material.valueOf(c.getString("material", "").toUpperCase().replace(" ", "_")), c.getInt("size"), c.getDouble("cost"), c.getDouble("moreSize", 1), c.getStringList("lore")));
+                        landsData.put(c.getString("name"), new LandsData(chat(c.getString("name")), Material.valueOf(c.getString("material", "").toUpperCase().replace(" ", "_")), c.getInt("slotSize"), c.getInt("size"), c.getDouble("cost"), c.getStringList("lore")));
                 } catch (Throwable e) {
                     lands.getLogger().warning(e.getMessage());
                     e.printStackTrace();
@@ -215,6 +219,7 @@ public class DatabaseManager {
                 worlds = new HashSet<>(mConfig.getStringList("worlds"));
             }
             maxLands = mConfig.getInt("maxLands", 4);
+            moreFindDistance = mConfig.getInt("findDistance", 100);
         } catch (Throwable e) {
             lands.getLogger().warning("config를 불러오는 도중 오류가 발생했습니다.");
             e.printStackTrace();
@@ -240,11 +245,12 @@ public class DatabaseManager {
     }
 
     public LandState setLand(UUID uuid, String name, Location location, LandsData data) {
-        if(notContainsWorld(location.getWorld())) return LandState.NO_WORLD;
+        if(!notContainsWorld(location.getWorld())) return LandState.NO_WORLD;
+        if(checkPlayerLandsWithName(uuid, name)) return LandState.DUPE_NAME;
         List<PlayerLand> lands = getPlayerLands(uuid);
         if(lands.size() >= maxLands) return LandState.MAX_LANDS;
         if(lands.stream().anyMatch(land -> land.getName().equals(name))) return LandState.ALREADY_EXISTS;
-        if(!canBuy(location, data)) return LandState.OTHER_LAND;
+        if(!canBuy(uuid, location, data)) return LandState.OTHER_LAND;
         World w = location.getWorld();
         if(w == null) return LandState.NOT_FOUND;
         Square square = new Square(location.getBlockX(), location.getBlockZ(), data.getSize());
@@ -274,6 +280,21 @@ public class DatabaseManager {
             landManagerMap.put(land.getId(), new LandManager(land, null));
         });
         return LandState.COMPLETE;
+    }
+
+    public void setSpawnLocation(int land, Location loc) {
+        try (
+                Connection c = DriverManager.getConnection(DatabaseManager.CONNECTION);
+                PreparedStatement s2 = c.prepareStatement("UPDATE Lands SET x=?, z=?, world=? where id=?")
+        ) {
+            s2.setInt(1, loc.getBlockX());
+            s2.setInt(2, loc.getBlockZ());
+            s2.setString(3, loc.getWorld().getName());
+            s2.setInt(4, land);
+            s2.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public LandCoopState addCoop(int land, String name) {
@@ -360,20 +381,6 @@ public class DatabaseManager {
         return manager.getFlag(flag);
     }
 
-    public FlagData getFlagFromDB(int id) {
-        try (
-                Connection c = DriverManager.getConnection(CONNECTION);
-                ResultSet r = c.prepareStatement("SELECT * from Flags where id="+id).executeQuery()
-                ) {
-            if (r.next()) {
-                return new FlagData(r.getInt("id"), r.getInt("land"), LandFlags.valueOf(r.getString("flag")), LandFlags.LandFlagSetting.values()[r.getInt("value")]);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
     public FlagData getFlagFromDB(int land, LandFlags flag) {
         try (
                 Connection c = DriverManager.getConnection(CONNECTION);
@@ -415,23 +422,6 @@ public class DatabaseManager {
         return null;
     }
 
-    public void setFlag(int flagId, LandFlags.LandFlagSetting setting) {
-        Bukkit.getScheduler().runTaskAsynchronously(lands, () -> {
-            if(setting == LandFlags.LandFlagSetting.DEFAULT) {
-                try (
-                        Connection c = DriverManager.getConnection(DatabaseManager.CONNECTION);
-                        PreparedStatement s2 = c.prepareStatement("UPDATE Flags SET value=? WHERE id=?")
-                ) {
-                    s2.setInt(1, flagId);
-                    s2.setInt(2, setting.ordinal());
-                    s2.executeUpdate();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-    }
-
     public void deleteLand(int land) {
         playerLands.removeIf(l -> l.getId() == land);
 
@@ -450,9 +440,10 @@ public class DatabaseManager {
         }
     }
 
-    public boolean canBuy(Location location, LandsData data) {
-        Square s = new Square(location.getBlockX(), location.getBlockZ(), data.getFindSize());
-        return playerLands.stream().noneMatch(land -> land.getSquare().isIn(s));
+    public boolean canBuy(UUID uuid, Location location, LandsData data) {
+        Square s = new Square(location.getBlockX(), location.getBlockZ(), data.getSize());
+        return playerLands.stream()
+                .noneMatch(land -> land.getOwner().equals(uuid) ? land.getSquare().isIn(s) : land.getCheckSquare().isIn(s));
     }
 
     public PlayerLand getCurrentLand(Player p) {
@@ -499,7 +490,7 @@ public class DatabaseManager {
 
     public PlayerLand getPlayerLand(UUID uuid, String name) {
         return playerLands.stream()
-                .filter(land -> land.getOwner() == uuid && land.getName().equals(name))
+                .filter(land -> land.getOwner().equals(uuid) && land.getName().equals(name))
                 .findFirst()
                 .orElse(null);
     }
@@ -511,9 +502,14 @@ public class DatabaseManager {
                 .orElse(null);
     }
 
+    public boolean checkPlayerLandsWithName(UUID uuid, String name) {
+        return playerLands.stream()
+                .anyMatch(l -> uuid.equals(l.getOwner()) && l.getName().equalsIgnoreCase(name));
+    }
+
     public List<PlayerLand> getPlayerLands(UUID uuid) {
         return playerLands.stream()
-                .filter(land -> land.getOwner() == uuid)
+                .filter(land -> land.getOwner().equals(uuid))
                 .sorted(Comparator.comparing(PlayerLand::getName))
                 .toList();
     }

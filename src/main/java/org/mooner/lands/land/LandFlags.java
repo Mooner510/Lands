@@ -31,7 +31,6 @@ public enum LandFlags {
     PROTECT_ITEM_FRAME("몹으로부터 아이템 거치대 보호", false, LandFlagSetting.DENY, Material.GLOW_ITEM_FRAME),
     SNOW("눈 쌓임", false, LandFlagSetting.DENY, Material.SNOW),
     RIDE("탑승", true, LandFlagSetting.DENY, Material.SADDLE),
-    EXPLODE("폭발", false, LandFlagSetting.DENY, Material.TNT),
     LIGHTNING("번개", false, LandFlagSetting.DENY, Material.LIGHTNING_ROD),
     ITEM_PICKUP("아이템 줍기", true, LandFlagSetting.DENY, Material.WHEAT_SEEDS),
     ITEM_THROW("아이템 던지기", true, LandFlagSetting.DENY, Material.PUMPKIN_SEEDS),

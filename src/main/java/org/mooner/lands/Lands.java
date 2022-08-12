@@ -58,7 +58,7 @@ public final class Lands extends JavaPlugin {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command cmd, String label, String[] arg) {
         ICommand command = CommandManager.init.getCommand(cmd.getName());
-        if(command != null) return command.tabComplete(cmd, arg);
+        if(command != null) return command.tabComplete(sender, cmd, arg);
         return Collections.emptyList();
     }
 }

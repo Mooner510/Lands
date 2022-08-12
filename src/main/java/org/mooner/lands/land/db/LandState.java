@@ -6,5 +6,6 @@ public enum LandState {
     OTHER_LAND,
     NOT_FOUND,
     NO_WORLD,
+    DUPE_NAME,
     COMPLETE
 }

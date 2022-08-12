@@ -10,5 +10,5 @@ public interface ICommand {
 
     boolean execute(CommandSender sender, Command cmd, String[] arg);
 
-    List<String> tabComplete(Command cmd, String[] arg);
+    List<String> tabComplete(CommandSender sender, Command cmd, String[] arg);
 }

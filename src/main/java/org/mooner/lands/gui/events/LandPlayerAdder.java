@@ -7,6 +7,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.mooner.lands.events.CancelRequestEvent;
 import org.mooner.lands.gui.gui.PlayerGUI;
 import org.mooner.lands.land.db.DatabaseManager;
 
@@ -18,6 +19,7 @@ public record LandPlayerAdder(Player p, int land) {
         this.p = p;
         this.land = land;
 
+        Bukkit.getPluginManager().callEvent(new CancelRequestEvent(p));
         p.sendMessage(DatabaseManager.init.getMessage("land-coop-request"));
         Bukkit.getPluginManager().registerEvents(new Chat(), lands);
     }
@@ -25,6 +27,7 @@ public record LandPlayerAdder(Player p, int land) {
     private class Chat implements Listener {
         @EventHandler
         public void onChat(AsyncPlayerChatEvent e) {
+            if(!e.getPlayer().getUniqueId().equals(p.getUniqueId())) return;
             e.setCancelled(true);
             Bukkit.getScheduler().runTask(lands, () -> {
                 switch (DatabaseManager.init.addCoop(land, e.getMessage())) {
@@ -37,6 +40,12 @@ public record LandPlayerAdder(Player p, int land) {
                 playSound(p, Sound.BLOCK_NOTE_BLOCK_PLING, 0.85, 1);
                 new PlayerGUI(p, DatabaseManager.init.getPlayerLand(land));
             });
+            HandlerList.unregisterAll(this);
+        }
+
+        @EventHandler
+        public void cancel(CancelRequestEvent e) {
+            if(!e.getPlayer().getUniqueId().equals(p.getUniqueId())) return;
             HandlerList.unregisterAll(this);
         }
     }

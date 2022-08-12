@@ -9,7 +9,7 @@ public interface IPlayerCommand extends ICommand {
     @Override
     default boolean execute(CommandSender sender, Command cmd, String[] arg) {
         Player p = (Player) sender;
-        ItemStack i = p.getItemInHand();
+        ItemStack i = p.getInventory().getItemInMainHand();
         return execute(p, i, cmd, arg);
     }
 

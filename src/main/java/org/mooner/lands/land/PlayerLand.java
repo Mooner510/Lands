@@ -5,6 +5,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
+import org.mooner.lands.land.db.DatabaseManager;
 import org.mooner.lands.land.db.LandCoopState;
 
 import javax.annotation.Nullable;
@@ -24,7 +25,7 @@ public class PlayerLand {
     @Getter
     private final Square square;
     @Getter
-    private final Location spawnLocation;
+    private Location spawnLocation;
 
     @Getter
     private final double cost;
@@ -40,6 +41,15 @@ public class PlayerLand {
         this.square = new Square(x, z, size);
         this.spawnLocation = loc;
         this.cost = cost;
+    }
+
+    public Square getCheckSquare() {
+        return new Square(square.getX(), square.getZ(), square.getDistance() >= DatabaseManager.init.getMoreFindDistance() ? (int) (square.getDistance() * 1.8) : square.getDistance());
+    }
+
+    public void setSpawnLocation(Location loc) {
+        this.spawnLocation = loc;
+        DatabaseManager.init.setSpawnLocation(id, loc);
     }
 
     public boolean isCoop(Player p) {

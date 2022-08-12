@@ -14,6 +14,10 @@ messages:
   land-coop-not-found: "&2[ &f땅 &2] &c해당 플레이어를 찾을 수 없습니다."
   land-coop-add: "&2[ &f땅 &2] &a해당 플레이어와 지역을 공유합니다."
   land-coop-remove: "&2[ &f땅 &2] &a더 이상 해당 플레이어와 지역을 공유하지 않습니다."
+  land-no-world: "&2[ &f땅 &2] &c해당 월드에서는 구매할 수 없습니다."
+  land-set-location: "&2[ &f땅 &2] &a현재 위치를 지역의 스폰 지점으로 설정했습니다."
+  land-dupe-name: "&2[ &f땅 &2] &6{1}&c이라는 땅은 이미 존재합니다."
 maxLands: 4
+findDistance: 100
 worlds:
   - world

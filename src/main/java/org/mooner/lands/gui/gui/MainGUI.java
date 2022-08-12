@@ -92,6 +92,9 @@ public class MainGUI {
                             new RemoveGUI(player, land);
                         } else if (e.getSlot() == 10) {
                             new PlayerGUI(player, land);
+                        } else if (e.getSlot() == 12) {
+                            land.setSpawnLocation(player.getLocation());
+                            player.sendMessage(DatabaseManager.init.getMessage("land-set-location"));
                         } else if (e.getSlot() == 14) {
                             new FlagGUI(player, land.getId(), 1);
                         } else if(e.getSlot() == 16) {

@@ -39,7 +39,7 @@ public class LandListener implements Listener {
     }
 
     private boolean check(LandFlags flag, @NonNull Player p) {
-        if(p.getUniqueId().equals(owner)) return true;
+        if(p.getUniqueId().equals(owner) || p.isOp()) return true;
         LandFlags.LandFlagSetting s;
         if((s = DatabaseManager.init.getFlag(land, flag)) == LandFlags.LandFlagSetting.ALLOW) return true;
         if(s == LandFlags.LandFlagSetting.ONLY_COOP) {
@@ -246,18 +246,6 @@ public class LandListener implements Listener {
                 e.setCancelled(true);
             }
         }
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onExplode(BlockExplodeEvent e) {
-        if(check(LandFlags.EXPLODE)) return;
-        e.blockList().removeIf(b -> square.in(b.getLocation()));
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onExplodeEntity(EntityExplodeEvent e) {
-        if(check(LandFlags.EXPLODE)) return;
-        e.blockList().removeIf(b -> square.in(b.getLocation()));
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)

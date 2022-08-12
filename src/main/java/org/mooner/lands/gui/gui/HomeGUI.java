@@ -2,6 +2,7 @@ package org.mooner.lands.gui.gui;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -18,6 +19,7 @@ import java.util.List;
 
 import static org.mooner.lands.Lands.lands;
 import static org.mooner.lands.MoonerUtils.chat;
+import static org.mooner.lands.MoonerUtils.playSound;
 import static org.mooner.lands.gui.GUIUtils.allFlags;
 import static org.mooner.lands.gui.GUIUtils.createItem;
 
@@ -33,11 +35,16 @@ public class HomeGUI {
             dataMap = new HashMap<>();
             List<PlayerLand> playerLands = DatabaseManager.init.getPlayerLands(p.getUniqueId());
             int size = playerLands.size();
-            this.inventory = Bukkit.createInventory(p, size > 27 ? (size/9)+1 : 27 , chat("소유한 지역 목록"));
+            this.inventory = Bukkit.createInventory(p, size > 27 ? (size/9)+1 : 27 , chat("소유한 지역 목록 (" + size + "개)"));
             int slot = 0;
             for (PlayerLand land : playerLands) {
                 dataMap.put(slot, land);
-                inventory.setItem(slot++, allFlags(createItem(Material.GRASS_BLOCK, 1, "&a" + land.getName(), "&e클릭하여 이동")));
+                inventory.setItem(slot++, allFlags(createItem(Material.GRASS_BLOCK, 1, "&a" + land.getName(),
+                        "",
+                        "&7위치: &e" + land.getSpawnLocation().getBlockX() + ", " + land.getSpawnLocation().getBlockY() + ", " + land.getSpawnLocation().getBlockZ(),
+                        "",
+                        "&e클릭하여 이동"
+                )));
             }
 
             Bukkit.getScheduler().runTask(lands, () -> {
@@ -58,10 +65,12 @@ public class HomeGUI {
                     PlayerLand data = dataMap.get(e.getSlot());
                     if(dataMap != null) {
                         if (data != null) {
-                            SetHomeAPI.backHere(player);
-                            player.teleport(data.getSpawnLocation());
-                            player.sendMessage(DatabaseManager.init.getMessage("teleport-home").replace("{1}", data.getName()));
-                            player.closeInventory();
+                            Player p = player;
+                            SetHomeAPI.backHere(p);
+                            p.sendMessage(DatabaseManager.init.getMessage("teleport-home").replace("{1}", data.getName()));
+                            p.teleport(data.getSpawnLocation());
+                            playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                            if(player != null) player.teleport(data.getSpawnLocation());
                         }
                     }
                 }
