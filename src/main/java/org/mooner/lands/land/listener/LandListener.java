@@ -48,7 +48,7 @@ public class LandListener implements Listener {
         return false;
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.HIGH)
     public void onMove(PlayerMoveEvent e) {
         if (e.isCancelled()) return;
         if(e.getTo() != null && square.in(e.getTo())) {
@@ -59,7 +59,7 @@ public class LandListener implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.HIGH)
     public void onPlace(BlockPlaceEvent e) {
         if (e.isCancelled()) return;
         if(e.getPlayer().isOp()) return;
@@ -68,7 +68,7 @@ public class LandListener implements Listener {
         e.setCancelled(true);
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.HIGH)
     public void onMultiPlace(BlockMultiPlaceEvent e) {
         if (e.isCancelled()) return;
         if(e.getPlayer().isOp()) return;
@@ -77,7 +77,7 @@ public class LandListener implements Listener {
         e.setCancelled(true);
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.HIGH)
     public void onBucketFill(PlayerBucketEmptyEvent e) {
         if (e.isCancelled()) return;
         if(e.getPlayer().isOp()) return;
@@ -86,7 +86,7 @@ public class LandListener implements Listener {
         e.setCancelled(true);
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.HIGH)
     public void onBreak(BlockBreakEvent e) {
         if (e.isCancelled()) return;
         if(e.getPlayer().isOp()) return;
@@ -95,7 +95,7 @@ public class LandListener implements Listener {
         e.setCancelled(true);
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.HIGH)
     public void onBucketFill(PlayerBucketFillEvent e) {
         if (e.isCancelled()) return;
         if(e.getPlayer().isOp()) return;
@@ -104,7 +104,7 @@ public class LandListener implements Listener {
         e.setCancelled(true);
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.HIGH)
     public void onPistonExtend(BlockPistonExtendEvent e) {
         if (e.isCancelled()) return;
         if(e.getBlocks().stream().anyMatch(b -> square.in(b.getLocation()))) {
@@ -113,7 +113,7 @@ public class LandListener implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.HIGH)
     public void onPistonRetract(BlockPistonRetractEvent e) {
         if (e.isCancelled()) return;
         if(e.getBlocks().stream().anyMatch(b -> square.in(b.getLocation()))) {
@@ -130,7 +130,7 @@ public class LandListener implements Listener {
 
     private final ImmutableSet<Material> shulker_box = ImmutableSet.of(Material.SHULKER_BOX, Material.BLACK_SHULKER_BOX, Material.BLUE_SHULKER_BOX, Material.BROWN_SHULKER_BOX, Material.CYAN_SHULKER_BOX, Material.GRAY_SHULKER_BOX, Material.GREEN_SHULKER_BOX, Material.LIGHT_BLUE_SHULKER_BOX, Material.LIGHT_GRAY_SHULKER_BOX, Material.LIME_SHULKER_BOX, Material.MAGENTA_SHULKER_BOX, Material.ORANGE_SHULKER_BOX, Material.PINK_SHULKER_BOX, Material.PURPLE_SHULKER_BOX, Material.RED_SHULKER_BOX, Material.WHITE_SHULKER_BOX, Material.YELLOW_SHULKER_BOX);
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.HIGH)
     public void onInteract(PlayerInteractEvent e) {
         if (e.isCancelled()) return;
         if(e.getPlayer().isOp()) return;
@@ -208,7 +208,7 @@ public class LandListener implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.HIGH)
     public void onInteractEntity(PlayerInteractEntityEvent e) {
         if (e.isCancelled()) return;
         if(e.getPlayer().isOp()) return;
@@ -232,7 +232,7 @@ public class LandListener implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.HIGH)
     public void onTeleport(PlayerTeleportEvent e) {
         if (e.isCancelled()) return;
         if(e.getPlayer().isOp()) return;
@@ -259,7 +259,7 @@ public class LandListener implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.HIGH)
     public void onLightning(LightningStrikeEvent e) {
         if (e.isCancelled()) return;
         if(!square.in(e.getLightning().getLocation())) return;
@@ -267,7 +267,7 @@ public class LandListener implements Listener {
         e.setCancelled(true);
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.HIGH)
     public void onPickup(EntityPickupItemEvent e) {
         if (e.isCancelled()) return;
         if (e.getEntity() instanceof Player p) {
@@ -278,7 +278,7 @@ public class LandListener implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.HIGH)
     public void onThrow(PlayerDropItemEvent e) {
         if (e.isCancelled()) return;
         if(e.getPlayer().isOp()) return;
@@ -287,7 +287,7 @@ public class LandListener implements Listener {
         e.setCancelled(true);
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.HIGH)
     public void onSpread(BlockSpreadEvent e) {
         if (e.isCancelled()) return;
         if (e.getBlock().getType() == Material.FIRE) {
@@ -297,7 +297,7 @@ public class LandListener implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.HIGH)
     public void onForm(BlockFormEvent e) {
         if (e.isCancelled()) return;
         if (e.getBlock().getType() == Material.SNOW) {
@@ -307,7 +307,7 @@ public class LandListener implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.HIGH)
     public void onFromTo(BlockFromToEvent e) {
         if (e.isCancelled()) return;
         if (e.getBlock().getType() == Material.LAVA) {
@@ -317,7 +317,7 @@ public class LandListener implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.HIGH)
     public void onShopCreate(ShopCreateEvent e) {
         if (e.isCancelled()) return;
         if(!square.in(e.getShop().getLocation())) return;
@@ -325,7 +325,7 @@ public class LandListener implements Listener {
         e.setCancelled(true);
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.HIGH)
     public void onDamage(EntityDamageByEntityEvent e) {
         if (e.isCancelled()) return;
         if(e.getDamager() instanceof Player p) {
@@ -346,7 +346,7 @@ public class LandListener implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.HIGH)
     public void onSpawn(EntitySpawnEvent e) {
         if (e.isCancelled()) return;
         if(!square.in(e.getLocation())) return;
@@ -354,7 +354,7 @@ public class LandListener implements Listener {
         e.setCancelled(true);
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.HIGH)
     public void onBlockChange(EntityChangeBlockEvent e) {
         if (e.isCancelled()) return;
         if (e.getEntityType() != EntityType.ENDERMAN) return;
@@ -363,7 +363,7 @@ public class LandListener implements Listener {
         e.setCancelled(true);
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.HIGH)
     public void onGrow(BlockGrowEvent e) {
         if (e.isCancelled()) return;
         if(!square.in(e.getBlock().getLocation())) return;
@@ -371,7 +371,7 @@ public class LandListener implements Listener {
         e.setCancelled(true);
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.HIGH)
     public void onStructureGrow(StructureGrowEvent e) {
         if (e.isCancelled()) return;
         if(!square.in(e.getLocation())) return;
@@ -379,7 +379,7 @@ public class LandListener implements Listener {
         e.setCancelled(true);
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.HIGH)
     public void onPickupEXP(PlayerExpChangeEvent e) {
         if (e.getAmount() == 0) return;
         if(e.getPlayer().isOp()) return;
