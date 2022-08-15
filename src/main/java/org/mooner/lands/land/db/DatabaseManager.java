@@ -1,9 +1,6 @@
 package org.mooner.lands.land.db;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
@@ -14,6 +11,7 @@ import org.mooner.lands.land.PlayerLand;
 import org.mooner.lands.land.Square;
 import org.mooner.lands.land.db.data.FlagData;
 import org.mooner.lands.land.db.data.LandsData;
+import org.mooner.moonereco.API.EcoAPI;
 
 import javax.annotation.Nullable;
 import java.io.*;
@@ -38,6 +36,7 @@ public class DatabaseManager {
     private Set<String> worlds;
     private Map<Integer, LandManager> landManagerMap;
     private Map<String, LandsData> landsData;
+    private List<LandsData> landsDataSorted;
     private Set<PlayerLand> playerLands;
 
     public DatabaseManager() {
@@ -191,20 +190,25 @@ public class DatabaseManager {
         }
 
         landsData = new HashMap<>();
+        landsDataSorted = new ArrayList<>();
         FileConfiguration config = loadConfig(dataPath, "lands.yml");
         try {
-            config.getKeys(false).forEach(key -> {
+            config.getKeys(false).stream().sorted().forEach(key -> {
                 ConfigurationSection c = config.getConfigurationSection(key);
                 try {
-                    if (c != null)
-                        landsData.put(c.getString("name"), new LandsData(chat(c.getString("name")), Material.valueOf(c.getString("material", "").toUpperCase().replace(" ", "_")), c.getInt("slotSize"), c.getInt("size"), c.getDouble("cost"), c.getStringList("lore")));
+                    if (c != null) {
+                        final LandsData data = new LandsData(chat(c.getString("name")), Material.valueOf(c.getString("material", "").toUpperCase().replace(" ", "_")), c.getInt("slotSize"), c.getInt("size"), c.getDouble("cost"), c.getStringList("lore"));
+                        landsData.put(c.getString("name"), data);
+                        landsDataSorted.add(data);
+                    }
                 } catch (Throwable e) {
                     lands.getLogger().warning(e.getMessage());
                     e.printStackTrace();
                 }
             });
+            lands.getLogger().warning("Lands 데이터 로드 완료");
         } catch (Throwable e) {
-            lands.getLogger().warning("Lands config를 불러오는 도중 오류가 발생했습니다.");
+            lands.getLogger().warning("Lands 데이터를 불러오는 도중 오류가 발생했습니다.");
             e.printStackTrace();
         }
 
@@ -220,8 +224,9 @@ public class DatabaseManager {
             }
             maxLands = mConfig.getInt("maxLands", 4);
             moreFindDistance = mConfig.getInt("findDistance", 100);
+            lands.getLogger().warning("Lands config 로드 완료");
         } catch (Throwable e) {
-            lands.getLogger().warning("config를 불러오는 도중 오류가 발생했습니다.");
+            lands.getLogger().warning("Lands config를 불러오는 도중 오류가 발생했습니다.");
             e.printStackTrace();
         }
     }
@@ -231,8 +236,8 @@ public class DatabaseManager {
         return landsData.get(s);
     }
 
-    public Collection<LandsData> getLandsData() {
-        return landsData.values();
+    public List<LandsData> getLandsData() {
+        return landsDataSorted;
     }
 
     public String getMessage(String s) {
@@ -245,6 +250,8 @@ public class DatabaseManager {
     }
 
     public LandState setLand(UUID uuid, String name, Location location, LandsData data) {
+        final OfflinePlayer offline = Bukkit.getOfflinePlayer(uuid);
+        if(!EcoAPI.init.hasPay(offline, data.getCost())) return LandState.NOT_ENOUGH_MONEY;
         if(!notContainsWorld(location.getWorld())) return LandState.NO_WORLD;
         if(checkPlayerLandsWithName(uuid, name)) return LandState.DUPE_NAME;
         List<PlayerLand> lands = getPlayerLands(uuid);
@@ -253,6 +260,7 @@ public class DatabaseManager {
         if(!canBuy(uuid, location, data)) return LandState.OTHER_LAND;
         World w = location.getWorld();
         if(w == null) return LandState.NOT_FOUND;
+        EcoAPI.init.removePay(offline, data.getCost());
         Square square = new Square(location.getBlockX(), location.getBlockZ(), data.getSize());
         final int x = location.getBlockX();
         final int z = location.getBlockZ();
@@ -444,6 +452,11 @@ public class DatabaseManager {
         Square s = new Square(location.getBlockX(), location.getBlockZ(), data.getSize());
         return playerLands.stream()
                 .noneMatch(land -> land.getOwner().equals(uuid) ? land.getSquare().isIn(s) : land.getCheckSquare().isIn(s));
+    }
+
+    public boolean isSafe(Location location) {
+        return playerLands.stream()
+                .noneMatch(land -> land.getSquare().in(location));
     }
 
     public PlayerLand getCurrentLand(Player p) {

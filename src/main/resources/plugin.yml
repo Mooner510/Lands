@@ -1,5 +1,5 @@
 name: Lands
-version: '${project.version}'
+version: 1.0
 main: org.mooner.lands.Lands
 api-version: 1.18
 authors: [ Mooner510 ]
@@ -8,7 +8,11 @@ depend:
   - NBTAPI
   - MoonerSethome
   - ShopChest-1.18
+  - MoonerEco
 
 commands:
   land:
     description: "land"
+  rtp:
+    aliases:
+      - 렌덤텔레포트

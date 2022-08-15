@@ -12,7 +12,7 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
 import org.mooner.lands.land.PlayerLand;
 import org.mooner.lands.land.db.DatabaseManager;
-import org.mooner.sethome.SetHomeAPI;
+import org.mooner.sethome.api.TpaAPI;
 
 import java.util.HashMap;
 import java.util.List;
@@ -66,7 +66,7 @@ public class HomeGUI {
                     if(dataMap != null) {
                         if (data != null) {
                             Player p = player;
-                            SetHomeAPI.backHere(p);
+                            TpaAPI.backHere(p);
                             p.sendMessage(DatabaseManager.init.getMessage("teleport-home").replace("{1}", data.getName()));
                             p.teleport(data.getSpawnLocation());
                             playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);

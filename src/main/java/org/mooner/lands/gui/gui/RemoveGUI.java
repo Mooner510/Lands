@@ -20,12 +20,12 @@ public class RemoveGUI {
     private Inventory inventory;
     private Player player;
     private final Click listener = new Click();
-    private int id;
+    private PlayerLand land;
 
     public RemoveGUI(Player p, PlayerLand land) {
         Bukkit.getScheduler().runTaskAsynchronously(lands, () -> {
             this.player = p;
-            this.id = land.getId();
+            this.land = land;
             this.inventory = Bukkit.createInventory(p, 27, chat("정말로 지역 " + land.getName() + "을(를) 삭제하시겠습니까?"));
             for (int i = 0; i < 5; i++) {
                 int finalI = i;
@@ -57,8 +57,8 @@ public class RemoveGUI {
                     e.setCancelled(true);
                     if(e.getCurrentItem().getType() == Material.CLOCK) return;
                     if(e.getSlot() == 11 && e.getCurrentItem().getType() == Material.GREEN_TERRACOTTA) {
-                        DatabaseManager.init.deleteLand(id);
-                        player.sendMessage(DatabaseManager.init.getMessage("land-delete"));
+                        player.sendMessage(DatabaseManager.init.getMessage("land-delete").replace("{1}", land.getCost() * 0.25 + ""));
+                        DatabaseManager.init.deleteLand(land.getId());
                     }
                     player.closeInventory();
                 }

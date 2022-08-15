@@ -2,6 +2,7 @@ package org.mooner.lands.command;
 
 import org.bukkit.Bukkit;
 import org.mooner.lands.command.commands.CmdLand;
+import org.mooner.lands.command.commands.CmdRTP;
 
 import java.util.HashMap;
 
@@ -15,7 +16,8 @@ public class CommandManager {
     public CommandManager() {
         commands = new HashMap<>();
         register(
-                new CmdLand()
+                new CmdLand(),
+                new CmdRTP()
         );
     }
 
