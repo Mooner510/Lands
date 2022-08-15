@@ -44,7 +44,7 @@ public class PlayerLand {
     }
 
     public Square getCheckSquare() {
-        return new Square(square.getX(), square.getZ(), square.getDistance() >= DatabaseManager.init.getMoreFindDistance() ? (int) (square.getDistance() * 1.8) : square.getDistance());
+        return new Square(square.getX(), square.getZ(), square.getDistance() >= DatabaseManager.init.getMoreFindDistance() ? (square.getDistance() + 40) : square.getDistance());
     }
 
     public void setSpawnLocation(Location loc) {

@@ -55,7 +55,7 @@ public class MainGUI {
                 inventory.setItem(17, pane);
                 int distance = land.getSquare().getDistance();
                 inventory.setItem(4, ench(createItem(Material.BOOK, 1, "&a지역 상세 정보 - " + land.getName(),
-                        "&7소유자: " + player.getDisplayName(),
+                        "&7소유자: " + Bukkit.getOfflinePlayer(land.getOwner()).getName(),
                         "&7공유 중인 플레이어: &b" + land.getCoopSize() + "명",
                         "&7지역 크기: &6" + distance * 2 + "x" + distance * 2
                 )));
