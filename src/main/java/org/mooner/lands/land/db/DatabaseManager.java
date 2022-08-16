@@ -12,6 +12,7 @@ import org.mooner.lands.land.Square;
 import org.mooner.lands.land.db.data.FlagData;
 import org.mooner.lands.land.db.data.LandsData;
 import org.mooner.moonereco.API.EcoAPI;
+import org.mooner.moonereco.API.LogType;
 
 import javax.annotation.Nullable;
 import java.io.*;
@@ -261,6 +262,7 @@ public class DatabaseManager {
         World w = location.getWorld();
         if(w == null) return LandState.NOT_FOUND;
         EcoAPI.init.removePay(offline, data.getCost());
+        EcoAPI.init.log(offline, LogType.LAND_BUY, data.getCost());
         Square square = new Square(location.getBlockX(), location.getBlockZ(), data.getSize());
         final int x = location.getBlockX();
         final int z = location.getBlockZ();
@@ -432,7 +434,6 @@ public class DatabaseManager {
 
     public void deleteLand(int land) {
         playerLands.removeIf(l -> l.getId() == land);
-
         landManagerMap.remove(land).unregister();
         try (
                 Connection c = DriverManager.getConnection(DatabaseManager.CONNECTION);

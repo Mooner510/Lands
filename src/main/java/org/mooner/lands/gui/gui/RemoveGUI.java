@@ -11,6 +11,8 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
 import org.mooner.lands.land.PlayerLand;
 import org.mooner.lands.land.db.DatabaseManager;
+import org.mooner.moonereco.API.EcoAPI;
+import org.mooner.moonereco.API.LogType;
 
 import static org.mooner.lands.Lands.lands;
 import static org.mooner.lands.MoonerUtils.chat;
@@ -59,6 +61,8 @@ public class RemoveGUI {
                     if(e.getSlot() == 11 && e.getCurrentItem().getType() == Material.GREEN_TERRACOTTA) {
                         player.sendMessage(DatabaseManager.init.getMessage("land-delete").replace("{1}", land.getCost() * 0.25 + ""));
                         DatabaseManager.init.deleteLand(land.getId());
+                        EcoAPI.init.addPay(player, land.getCost() * 0.25);
+                        EcoAPI.init.log(player, LogType.LAND_SELL, land.getCost() * 0.25);
                     }
                     player.closeInventory();
                 }

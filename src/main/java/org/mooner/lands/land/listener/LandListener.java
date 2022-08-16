@@ -4,15 +4,15 @@ import com.google.common.collect.ImmutableSet;
 import de.epiceric.shopchest.event.ShopCreateEvent;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Player;
-import org.bukkit.entity.Vehicle;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.*;
-import org.bukkit.event.entity.*;
+import org.bukkit.event.entity.EntityChangeBlockEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.event.weather.LightningStrikeEvent;
 import org.bukkit.event.world.StructureGrowEvent;
@@ -39,11 +39,11 @@ public class LandListener implements Listener {
     }
 
     private boolean check(LandFlags flag, @NonNull Player p) {
-        if(p.getUniqueId().equals(owner) || p.isOp()) return true;
+        if((flag.isForcedOwner() && p.getUniqueId().equals(owner)) || p.isOp()) return true;
         LandFlags.LandFlagSetting s;
         if((s = DatabaseManager.init.getFlag(land, flag)) == LandFlags.LandFlagSetting.ALLOW) return true;
         if(s == LandFlags.LandFlagSetting.ONLY_COOP) {
-            return DatabaseManager.init.getPlayerLand(land).isCoop(p);
+            return p.getUniqueId().equals(owner) || DatabaseManager.init.getPlayerLand(land).isCoop(p);
         }
         return false;
     }
@@ -346,9 +346,12 @@ public class LandListener implements Listener {
         }
     }
 
+//    private final Set<EntityType> types = Set.of(EntityType.ARMOR_STAND, EntityType.ARROW, EntityType.DROPPED_ITEM, EntityType.GLOW_ITEM_FRAME, EntityType.ITEM_FRAME, EntityType.BOAT, EntityType.EGG, EntityType.SNOWBALL, EntityType.SNOWMAN, EntityType.IRON_GOLEM, EntityType.LEASH_HITCH, EntityType.BEE, EntityType.);
+
     @EventHandler(priority = EventPriority.HIGH)
     public void onSpawn(EntitySpawnEvent e) {
         if (e.isCancelled()) return;
+        if(!(e.getEntity() instanceof Monster)) return;
         if(!square.in(e.getLocation())) return;
         if (check(LandFlags.ENTITY_SPAWN)) return;
         e.setCancelled(true);
