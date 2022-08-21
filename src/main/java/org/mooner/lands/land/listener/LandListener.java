@@ -3,7 +3,6 @@ package org.mooner.lands.land.listener;
 import com.google.common.collect.ImmutableSet;
 import de.epiceric.shopchest.event.ShopCreateEvent;
 import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
