@@ -18,8 +18,8 @@ import static org.mooner.lands.MoonerUtils.playSound;
 
 public class RTP {
     public static HashMap<UUID, Long> rtpTime = new HashMap<>();
-    public static int coolTime = 30000;
-    public static int rtpDistance = 10000;
+    public static int coolTime = 60000;
+    public static int rtpDistance = 40000;
 
     private BukkitTask task;
 
@@ -55,6 +55,6 @@ public class RTP {
                     task.cancel();
                 }
             }
-        }, 0, 20);
+        }, 0, 30);
     }
 }
