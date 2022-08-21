@@ -3,6 +3,7 @@ package org.mooner.lands.land.listener;
 import com.google.common.collect.ImmutableSet;
 import de.epiceric.shopchest.event.ShopCreateEvent;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
@@ -25,11 +26,13 @@ import java.util.UUID;
 
 public class LandListener implements Listener {
     private final int land;
+    private final UUID uuid;
     private final UUID owner;
     private final Square square;
 
-    public LandListener(int land, Square s) {
+    public LandListener(int land, UUID world, Square s) {
         this.square = s;
+        this.uuid = world;
         this.land = land;
         this.owner = DatabaseManager.init.getPlayerLand(land).getOwner();
     }
@@ -51,6 +54,7 @@ public class LandListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH)
     public void onMove(PlayerMoveEvent e) {
         if (e.isCancelled()) return;
+        if(!e.getPlayer().getWorld().getUID().equals(uuid)) return;
         if(e.getTo() != null && square.in(e.getTo())) {
             e.setCancelled(!check(LandFlags.MOVE_IN, e.getPlayer()));
         }
@@ -63,6 +67,7 @@ public class LandListener implements Listener {
     public void onPlace(BlockPlaceEvent e) {
         if (e.isCancelled()) return;
         if(e.getPlayer().isOp()) return;
+        if(!e.getBlock().getWorld().getUID().equals(uuid)) return;
         if(!square.in(e.getBlock().getLocation())) return;
         if(check(LandFlags.BLOCK_PLACE, e.getPlayer())) return;
         e.setCancelled(true);
@@ -72,6 +77,7 @@ public class LandListener implements Listener {
     public void onMultiPlace(BlockMultiPlaceEvent e) {
         if (e.isCancelled()) return;
         if(e.getPlayer().isOp()) return;
+        if(!e.getBlock().getWorld().getUID().equals(uuid)) return;
         if(!square.in(e.getBlock().getLocation())) return;
         if(check(LandFlags.BLOCK_PLACE, e.getPlayer())) return;
         e.setCancelled(true);
@@ -81,6 +87,7 @@ public class LandListener implements Listener {
     public void onBucketFill(PlayerBucketEmptyEvent e) {
         if (e.isCancelled()) return;
         if(e.getPlayer().isOp()) return;
+        if(!e.getBlock().getWorld().getUID().equals(uuid)) return;
         if(!square.in(e.getBlock().getLocation())) return;
         if(check(LandFlags.BLOCK_PLACE, e.getPlayer())) return;
         e.setCancelled(true);
@@ -90,6 +97,7 @@ public class LandListener implements Listener {
     public void onBreak(BlockBreakEvent e) {
         if (e.isCancelled()) return;
         if(e.getPlayer().isOp()) return;
+        if(!e.getBlock().getWorld().getUID().equals(uuid)) return;
         if(!square.in(e.getBlock().getLocation())) return;
         if(check(LandFlags.BLOCK_BREAK, e.getPlayer())) return;
         e.setCancelled(true);
@@ -99,6 +107,7 @@ public class LandListener implements Listener {
     public void onBucketFill(PlayerBucketFillEvent e) {
         if (e.isCancelled()) return;
         if(e.getPlayer().isOp()) return;
+        if(!e.getBlock().getWorld().getUID().equals(uuid)) return;
         if(!square.in(e.getBlock().getLocation())) return;
         if(check(LandFlags.BLOCK_BREAK, e.getPlayer())) return;
         e.setCancelled(true);
@@ -107,6 +116,7 @@ public class LandListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH)
     public void onPistonExtend(BlockPistonExtendEvent e) {
         if (e.isCancelled()) return;
+        if(!e.getBlock().getWorld().getUID().equals(uuid)) return;
         if(e.getBlocks().stream().anyMatch(b -> square.in(b.getLocation()))) {
             if (check(LandFlags.USE_PISTON)) return;
             e.setCancelled(true);
@@ -116,6 +126,7 @@ public class LandListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH)
     public void onPistonRetract(BlockPistonRetractEvent e) {
         if (e.isCancelled()) return;
+        if(!e.getBlock().getWorld().getUID().equals(uuid)) return;
         if(e.getBlocks().stream().anyMatch(b -> square.in(b.getLocation()))) {
             if (check(LandFlags.USE_PISTON)) return;
             e.setCancelled(true);
@@ -134,6 +145,7 @@ public class LandListener implements Listener {
     public void onInteract(PlayerInteractEvent e) {
         if (e.isCancelled()) return;
         if(e.getPlayer().isOp()) return;
+        if(!e.getPlayer().getWorld().getUID().equals(uuid)) return;
         Block b = e.getClickedBlock();
         if(e.getAction() == Action.PHYSICAL && b != null) {
             if(!plates.contains(b.getType())) return;
@@ -212,6 +224,7 @@ public class LandListener implements Listener {
     public void onInteractEntity(PlayerInteractEntityEvent e) {
         if (e.isCancelled()) return;
         if(e.getPlayer().isOp()) return;
+        if(!e.getPlayer().getWorld().getUID().equals(uuid)) return;
         Entity entity = e.getRightClicked();
         if(entity.getType() == EntityType.ITEM_FRAME || entity.getType() == EntityType.GLOW_ITEM_FRAME) {
             if(!square.in(entity.getLocation())) return;
@@ -236,6 +249,7 @@ public class LandListener implements Listener {
     public void onTeleport(PlayerTeleportEvent e) {
         if (e.isCancelled()) return;
         if(e.getPlayer().isOp()) return;
+        if(!e.getPlayer().getWorld().getUID().equals(uuid)) return;
         final boolean to = e.getTo() != null && square.in(e.getTo());
         final boolean from = square.in(e.getFrom());
         if(e.getCause() != PlayerTeleportEvent.TeleportCause.COMMAND) {
@@ -262,6 +276,7 @@ public class LandListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH)
     public void onLightning(LightningStrikeEvent e) {
         if (e.isCancelled()) return;
+        if(!e.getWorld().getUID().equals(uuid)) return;
         if(!square.in(e.getLightning().getLocation())) return;
         if(check(LandFlags.LIGHTNING)) return;
         e.setCancelled(true);
@@ -270,6 +285,7 @@ public class LandListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH)
     public void onPickup(EntityPickupItemEvent e) {
         if (e.isCancelled()) return;
+        if(!e.getEntity().getWorld().getUID().equals(uuid)) return;
         if (e.getEntity() instanceof Player p) {
             if(p.isOp()) return;
             if(!square.in(e.getItem().getLocation())) return;
@@ -282,6 +298,7 @@ public class LandListener implements Listener {
     public void onThrow(PlayerDropItemEvent e) {
         if (e.isCancelled()) return;
         if(e.getPlayer().isOp()) return;
+        if(!e.getPlayer().getWorld().getUID().equals(uuid)) return;
         if(!square.in(e.getPlayer().getLocation())) return;
         if(check(LandFlags.ITEM_THROW, e.getPlayer())) return;
         e.setCancelled(true);
@@ -290,6 +307,7 @@ public class LandListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH)
     public void onSpread(BlockSpreadEvent e) {
         if (e.isCancelled()) return;
+        if(!e.getBlock().getWorld().getUID().equals(uuid)) return;
         if (e.getBlock().getType() == Material.FIRE) {
             if(!square.in(e.getBlock().getLocation())) return;
             if(check(LandFlags.FIRE)) return;
@@ -300,6 +318,7 @@ public class LandListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH)
     public void onForm(BlockFormEvent e) {
         if (e.isCancelled()) return;
+        if(!e.getBlock().getWorld().getUID().equals(uuid)) return;
         if (e.getBlock().getType() == Material.SNOW) {
             if(!square.in(e.getBlock().getLocation())) return;
             if(check(LandFlags.SNOW)) return;
@@ -310,6 +329,7 @@ public class LandListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH)
     public void onFromTo(BlockFromToEvent e) {
         if (e.isCancelled()) return;
+        if(!e.getBlock().getWorld().getUID().equals(uuid)) return;
         if (e.getBlock().getType() == Material.LAVA) {
             if(!square.in(e.getBlock().getLocation())) return;
             if(check(LandFlags.LAVA_FLOW)) return;
@@ -320,6 +340,7 @@ public class LandListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH)
     public void onShopCreate(ShopCreateEvent e) {
         if (e.isCancelled()) return;
+        if(!e.getPlayer().getWorld().getUID().equals(uuid)) return;
         if(!square.in(e.getShop().getLocation())) return;
         if(check(LandFlags.CREATE_SHOP)) return;
         e.setCancelled(true);
@@ -328,6 +349,7 @@ public class LandListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH)
     public void onDamage(EntityDamageByEntityEvent e) {
         if (e.isCancelled()) return;
+        if(!e.getEntity().getWorld().getUID().equals(uuid)) return;
         if(e.getDamager() instanceof Player p) {
             if(p.isOp()) return;
             if(!square.in(e.getEntity().getLocation())) return;
@@ -352,6 +374,7 @@ public class LandListener implements Listener {
     public void onSpawn(EntitySpawnEvent e) {
         if (e.isCancelled()) return;
         if(!(e.getEntity() instanceof Monster)) return;
+        if(!e.getEntity().getWorld().getUID().equals(uuid)) return;
         if(!square.in(e.getLocation())) return;
         if (check(LandFlags.ENTITY_SPAWN)) return;
         e.setCancelled(true);
@@ -361,6 +384,7 @@ public class LandListener implements Listener {
     public void onBlockChange(EntityChangeBlockEvent e) {
         if (e.isCancelled()) return;
         if (e.getEntityType() != EntityType.ENDERMAN) return;
+        if(!e.getEntity().getWorld().getUID().equals(uuid)) return;
         if(!square.in(e.getBlock().getLocation())) return;
         if (check(LandFlags.ENDERMAN_BLOCK)) return;
         e.setCancelled(true);
@@ -369,6 +393,7 @@ public class LandListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH)
     public void onGrow(BlockGrowEvent e) {
         if (e.isCancelled()) return;
+        if(!e.getBlock().getWorld().getUID().equals(uuid)) return;
         if(!square.in(e.getBlock().getLocation())) return;
         if (check(LandFlags.GROW)) return;
         e.setCancelled(true);
@@ -377,6 +402,7 @@ public class LandListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH)
     public void onStructureGrow(StructureGrowEvent e) {
         if (e.isCancelled()) return;
+        if(!e.getWorld().getUID().equals(uuid)) return;
         if(!square.in(e.getLocation())) return;
         if (check(LandFlags.GROW)) return;
         e.setCancelled(true);
@@ -386,6 +412,7 @@ public class LandListener implements Listener {
     public void onPickupEXP(PlayerExpChangeEvent e) {
         if (e.getAmount() == 0) return;
         if(e.getPlayer().isOp()) return;
+        if(!e.getPlayer().getWorld().getUID().equals(uuid)) return;
         if(!square.in(e.getPlayer().getLocation())) return;
         if (check(LandFlags.EXP_PICKUP, e.getPlayer())) return;
         e.setAmount(0);

@@ -9,9 +9,11 @@ import org.mooner.lands.land.listener.LandListener;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 
 public class LandManager {
     private final int landId;
+    private final UUID world;
     private Square square;
     private HashMap<LandFlags, Integer> flagMap;
     private HashMap<Integer, LandFlags.LandFlagSetting> valueMap;
@@ -20,6 +22,7 @@ public class LandManager {
 
     public LandManager(PlayerLand land, List<FlagData> data) {
         this.landId = land.getId();
+        this.world = land.getSpawnLocation().getWorld().getUID();
         flagMap = new HashMap<>();
         valueMap = new HashMap<>();
         requests = new HashMap<>();
@@ -32,7 +35,7 @@ public class LandManager {
     }
 
     public void register() {
-        Bukkit.getPluginManager().registerEvents(listener = new LandListener(landId, square), Lands.lands);
+        Bukkit.getPluginManager().registerEvents(listener = new LandListener(landId, world, square), Lands.lands);
     }
 
     public void unregister() {
