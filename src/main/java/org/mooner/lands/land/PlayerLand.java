@@ -5,6 +5,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.mooner.lands.land.db.DatabaseManager;
 import org.mooner.lands.land.db.LandCoopState;
 
@@ -82,7 +83,7 @@ public class PlayerLand {
                 .orElse(null);
         if(offlinePlayer == null) return LandCoopState.NOT_FOUND;
         if(coop != null) {
-            if (coop.size() >= 5) return LandCoopState.MAX_PLAYER;
+            if (coop.size() >= 10) return LandCoopState.MAX_PLAYER;
             if (coop.contains(offlinePlayer.getUniqueId())) return LandCoopState.ALREADY_EXISTS;
         } else coop = new HashSet<>();
         coop.add(offlinePlayer.getUniqueId());
@@ -92,7 +93,7 @@ public class PlayerLand {
     public LandCoopState addCoop(UUID uuid) {
         if(uuid == null) return LandCoopState.NOT_FOUND;
         if(coop != null) {
-            if (coop.size() >= 5) return LandCoopState.MAX_PLAYER;
+            if (coop.size() >= 10) return LandCoopState.MAX_PLAYER;
             if (coop.contains(uuid)) return LandCoopState.ALREADY_EXISTS;
         } else coop = new HashSet<>();
         coop.add(uuid);

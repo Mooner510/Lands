@@ -9,10 +9,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.*;
-import org.bukkit.event.entity.EntityChangeBlockEvent;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityPickupItemEvent;
-import org.bukkit.event.entity.EntitySpawnEvent;
+import org.bukkit.event.entity.*;
 import org.bukkit.event.player.*;
 import org.bukkit.event.weather.LightningStrikeEvent;
 import org.bukkit.event.world.StructureGrowEvent;
@@ -140,6 +137,8 @@ public class LandListener implements Listener {
 
     private final ImmutableSet<Material> shulker_box = ImmutableSet.of(Material.SHULKER_BOX, Material.BLACK_SHULKER_BOX, Material.BLUE_SHULKER_BOX, Material.BROWN_SHULKER_BOX, Material.CYAN_SHULKER_BOX, Material.GRAY_SHULKER_BOX, Material.GREEN_SHULKER_BOX, Material.LIGHT_BLUE_SHULKER_BOX, Material.LIGHT_GRAY_SHULKER_BOX, Material.LIME_SHULKER_BOX, Material.MAGENTA_SHULKER_BOX, Material.ORANGE_SHULKER_BOX, Material.PINK_SHULKER_BOX, Material.PURPLE_SHULKER_BOX, Material.RED_SHULKER_BOX, Material.WHITE_SHULKER_BOX, Material.YELLOW_SHULKER_BOX);
 
+    private final ImmutableSet<Material> beds = ImmutableSet.of(Material.BLACK_BED, Material.BLUE_BED, Material.BROWN_BED, Material.CYAN_BED, Material.GRAY_BED, Material.GREEN_BED, Material.LIGHT_BLUE_BED, Material.LIGHT_GRAY_BED, Material.LIME_BED, Material.MAGENTA_BED, Material.ORANGE_BED, Material.PINK_BED, Material.PURPLE_BED, Material.RED_BED, Material.WHITE_BED, Material.YELLOW_BED);
+
     @EventHandler(priority = EventPriority.HIGH)
     public void onInteract(PlayerInteractEvent e) {
         if (e.isCancelled()) return;
@@ -163,19 +162,7 @@ public class LandListener implements Listener {
             }
         } else if(e.getAction() == Action.RIGHT_CLICK_BLOCK && b != null) {
             if (e.getItem() != null && e.getItem().getType().isBlock() && e.getPlayer().isSneaking()) return;
-            if (doors.contains(b.getType())) {
-                if(!square.in(b.getLocation())) return;
-                if(check(LandFlags.OPEN, e.getPlayer())) return;
-                e.setCancelled(true);
-            } else if (buttons.contains(b.getType())) {
-                if(!square.in(b.getLocation())) return;
-                if(check(LandFlags.USE_BUTTON, e.getPlayer())) return;
-                e.setCancelled(true);
-            } else if (b.getType() == Material.CHEST || b.getType() == Material.ENDER_CHEST || b.getType() == Material.TRAPPED_CHEST || b.getType() == Material.BARREL || b.getType() == Material.HOPPER || shulker_box.contains(b.getType())) {
-                if(!square.in(b.getLocation())) return;
-                if(check(LandFlags.USE_CHEST, e.getPlayer())) return;
-                e.setCancelled(true);
-            } else if (b.getType() == Material.ANVIL || b.getType() == Material.CHIPPED_ANVIL || b.getType() == Material.DAMAGED_ANVIL) {
+            if (b.getType() == Material.ANVIL || b.getType() == Material.CHIPPED_ANVIL || b.getType() == Material.DAMAGED_ANVIL) {
                 if(!square.in(b.getLocation())) return;
                 if(check(LandFlags.USE_ANVIL, e.getPlayer())) return;
                 e.setCancelled(true);
@@ -206,6 +193,26 @@ public class LandListener implements Listener {
             } else if (b.getType() == Material.BEE_NEST || b.getType() == Material.BEEHIVE) {
                 if(!square.in(b.getLocation())) return;
                 if(check(LandFlags.USE_BEE, e.getPlayer())) return;
+                e.setCancelled(true);
+            } else if (b.getType() == Material.LODESTONE) {
+                if(!square.in(b.getLocation())) return;
+                if(check(LandFlags.USE_LODESTONE, e.getPlayer())) return;
+                e.setCancelled(true);
+            } else if (b.getType() == Material.CHEST || b.getType() == Material.ENDER_CHEST || b.getType() == Material.TRAPPED_CHEST || b.getType() == Material.BARREL || b.getType() == Material.HOPPER || shulker_box.contains(b.getType())) {
+                if(!square.in(b.getLocation())) return;
+                if(check(LandFlags.USE_CHEST, e.getPlayer())) return;
+                e.setCancelled(true);
+            } else if (doors.contains(b.getType())) {
+                if(!square.in(b.getLocation())) return;
+                if(check(LandFlags.OPEN, e.getPlayer())) return;
+                e.setCancelled(true);
+            } else if (buttons.contains(b.getType())) {
+                if(!square.in(b.getLocation())) return;
+                if(check(LandFlags.USE_BUTTON, e.getPlayer())) return;
+                e.setCancelled(true);
+            } else if (beds.contains(b.getType())) {
+                if(!square.in(b.getLocation())) return;
+                if(check(LandFlags.USE_BED, e.getPlayer())) return;
                 e.setCancelled(true);
             }
         } else if(e.getAction() == Action.RIGHT_CLICK_AIR) {
@@ -346,7 +353,19 @@ public class LandListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGH)
-    public void onDamage(EntityDamageByEntityEvent e) {
+    public void onDamage(EntityDamageEvent e) {
+        if (e.isCancelled()) return;
+        if(e.getEntity() instanceof Player p) {
+            if (e.getCause() == EntityDamageEvent.DamageCause.FALL) {
+                if (!square.in(e.getEntity().getLocation())) return;
+                if (check(LandFlags.FALL_DAMAGE)) return;
+                e.setCancelled(true);
+            }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onDamageEntity(EntityDamageByEntityEvent e) {
         if (e.isCancelled()) return;
         if(!e.getEntity().getWorld().getUID().equals(uuid)) return;
         if(e.getDamager() instanceof Player p) {
@@ -364,6 +383,26 @@ public class LandListener implements Listener {
             if(!square.in(e.getEntity().getLocation())) return;
             if (check(LandFlags.PLAYER_DAMAGE_BY_ENTITY, p)) return;
             e.setCancelled(true);
+        } else if(e.getEntity() instanceof Animals) {
+            if (!(e.getDamager() instanceof Player p)) return;
+            if(!square.in(e.getEntity().getLocation())) return;
+            if (check(LandFlags.ANIMAL_DAMAGE_BY_PLAYER, p)) return;
+            e.setCancelled(true);
+        } else if(e.getEntityType() == EntityType.VILLAGER) {
+            if (!(e.getDamager() instanceof Player p)) return;
+            if(!square.in(e.getEntity().getLocation())) return;
+            if (check(LandFlags.VILLAGER_DAMAGE_BY_PLAYER, p)) return;
+            e.setCancelled(true);
+        } else if(e.getEntityType() == EntityType.ITEM_FRAME || e.getEntityType() == EntityType.GLOW_ITEM_FRAME) {
+            if(e.getDamager() instanceof Player p) {
+                if(!square.in(e.getEntity().getLocation())) return;
+                if (check(LandFlags.USE_ITEM_FRAME, p)) return;
+                e.setCancelled(true);
+            } else {
+                if(!square.in(e.getEntity().getLocation())) return;
+                if (check(LandFlags.PROTECT_ITEM_FRAME)) return;
+                e.setCancelled(true);
+            }
         }
     }
 
