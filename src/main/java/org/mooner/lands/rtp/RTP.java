@@ -24,6 +24,10 @@ public class RTP {
     private BukkitTask task;
 
     public RTP(Player p) {
+        if(!p.getWorld().getName().equals("world")) {
+            p.sendMessage(chat("&c해당 월드에서는 사용이 불가능합니다! 오버월드로 이동해 주세요."));
+            return;
+        }
         final Long time = rtpTime.get(p.getUniqueId());
         if(time != null && !p.isOp()) {
             final long now = System.currentTimeMillis();
