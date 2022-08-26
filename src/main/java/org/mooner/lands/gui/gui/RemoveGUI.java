@@ -16,6 +16,7 @@ import org.mooner.moonereco.API.LogType;
 
 import static org.mooner.lands.Lands.lands;
 import static org.mooner.lands.MoonerUtils.chat;
+import static org.mooner.lands.MoonerUtils.parseString;
 import static org.mooner.lands.gui.GUIUtils.createItem;
 
 public class RemoveGUI {
@@ -59,7 +60,7 @@ public class RemoveGUI {
                     e.setCancelled(true);
                     if(e.getCurrentItem().getType() == Material.CLOCK) return;
                     if(e.getSlot() == 11 && e.getCurrentItem().getType() == Material.GREEN_TERRACOTTA) {
-                        player.sendMessage(DatabaseManager.init.getMessage("land-delete").replace("{1}", land.getCost() * 0.25 + ""));
+                        player.sendMessage(DatabaseManager.init.getMessage("land-delete").replace("{1}", parseString(land.getCost() * 0.25, 2, true)));
                         DatabaseManager.init.deleteLand(land.getId());
                         EcoAPI.init.addPay(player, land.getCost() * 0.25);
                         EcoAPI.init.log(player, LogType.LAND_SELL, land.getCost() * 0.25);

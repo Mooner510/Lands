@@ -22,6 +22,7 @@ public final class Lands extends JavaPlugin {
     @Override
     public void onEnable() {
         lands = this;
+        getLogger().info("Plugin Enabled!");
         CommandManager.init = new CommandManager();
 
         DatabaseManager.init = new DatabaseManager();
@@ -31,6 +32,7 @@ public final class Lands extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        getLogger().info("Plugin Disabled!");
     }
 
     @Override

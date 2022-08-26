@@ -100,7 +100,9 @@ public class DatabaseManager {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
 
+    public void update() {
         landManagerMap = new HashMap<>();
         HashMap<Integer, ArrayList<FlagData>> flags = new HashMap<>();
         try(
@@ -145,9 +147,7 @@ public class DatabaseManager {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-    }
 
-    public void update() {
         File f = new File(dataPath, "lands.yml");
         if(!f.exists()) {
             try {
@@ -263,10 +263,8 @@ public class DatabaseManager {
         if(w == null) return LandState.NOT_FOUND;
         EcoAPI.init.removePay(offline, data.getCost());
         EcoAPI.init.log(offline, LogType.LAND_BUY, data.getCost());
-        Square square = new Square(location.getBlockX(), location.getBlockZ(), data.getSize());
         final int x = location.getBlockX();
         final int z = location.getBlockZ();
-        square.getOutline(arr -> new Location(w, arr[0] + x, w.getHighestBlockYAt(arr[0] + x, arr[1] + z) + 1, arr[1] + z).getBlock().setType(Material.OAK_FENCE));
         Bukkit.getScheduler().runTaskAsynchronously(Lands.lands, () -> {
             try(
                     Connection c = DriverManager.getConnection(CONNECTION);
@@ -275,8 +273,8 @@ public class DatabaseManager {
                 s.setString(1, uuid.toString());
                 s.setString(2, name);
                 s.setString(3, null);
-                s.setInt(4, location.getBlockX());
-                s.setInt(5, location.getBlockZ());
+                s.setInt(4, x);
+                s.setInt(5, z);
                 s.setString(6, w.getName());
                 s.setString(7, location.getX()+":"+location.getY()+":"+location.getZ()+":"+location.getYaw()+":"+location.getPitch());
                 s.setInt(8, data.getSize());
@@ -286,6 +284,7 @@ public class DatabaseManager {
                 e.printStackTrace();
             }
             PlayerLand land = getPlayerLandInDB(uuid, name);
+            Bukkit.getScheduler().runTaskLater(Lands.lands, () -> land.getSquare().getOutline(arr -> new Location(w, arr[0] + x, w.getHighestBlockYAt(arr[0] + x, arr[1] + z) + 1, arr[1] + z).getBlock().setType(Material.OAK_FENCE)), 20L);
             playerLands.add(land);
             landManagerMap.put(land.getId(), new LandManager(land, null));
         });

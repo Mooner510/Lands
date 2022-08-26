@@ -355,12 +355,16 @@ public class LandListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH)
     public void onDamage(EntityDamageEvent e) {
         if (e.isCancelled()) return;
-        if(e.getEntity() instanceof Player p) {
+        if(e.getEntity() instanceof Player) {
             if (e.getCause() == EntityDamageEvent.DamageCause.FALL) {
                 if (!square.in(e.getEntity().getLocation())) return;
                 if (check(LandFlags.FALL_DAMAGE)) return;
                 e.setCancelled(true);
             }
+        } else if(e.getEntityType() == EntityType.VILLAGER) {
+            if (!square.in(e.getEntity().getLocation())) return;
+            if (check(LandFlags.PROTECT_VILLAGER)) return;
+            e.setCancelled(true);
         }
     }
 
@@ -389,10 +393,14 @@ public class LandListener implements Listener {
             if (check(LandFlags.ANIMAL_DAMAGE_BY_PLAYER, p)) return;
             e.setCancelled(true);
         } else if(e.getEntityType() == EntityType.VILLAGER) {
-            if (!(e.getDamager() instanceof Player p)) return;
-            if(!square.in(e.getEntity().getLocation())) return;
-            if (check(LandFlags.VILLAGER_DAMAGE_BY_PLAYER, p)) return;
-            e.setCancelled(true);
+            if (!square.in(e.getEntity().getLocation())) return;
+            if (e.getDamager() instanceof Player p) {
+                if (check(LandFlags.VILLAGER_DAMAGE_BY_PLAYER, p)) return;
+                e.setCancelled(true);
+            } else if(e.getDamager().getType() != EntityType.ZOMBIE) {
+                if (check(LandFlags.PROTECT_VILLAGER)) return;
+                e.setCancelled(true);
+            }
         } else if(e.getEntityType() == EntityType.ITEM_FRAME || e.getEntityType() == EntityType.GLOW_ITEM_FRAME) {
             if(e.getDamager() instanceof Player p) {
                 if(!square.in(e.getEntity().getLocation())) return;
@@ -409,10 +417,17 @@ public class LandListener implements Listener {
 //    private final Set<EntityType> types = Set.of(EntityType.ARMOR_STAND, EntityType.ARROW, EntityType.DROPPED_ITEM, EntityType.GLOW_ITEM_FRAME, EntityType.ITEM_FRAME, EntityType.BOAT, EntityType.EGG, EntityType.SNOWBALL, EntityType.SNOWMAN, EntityType.IRON_GOLEM, EntityType.LEASH_HITCH, EntityType.BEE, EntityType.);
 
     @EventHandler(priority = EventPriority.HIGH)
-    public void onSpawn(EntitySpawnEvent e) {
+    public void onSpawn(CreatureSpawnEvent e) {
         if (e.isCancelled()) return;
-        if(!(e.getEntity() instanceof Monster)) return;
         if(!e.getEntity().getWorld().getUID().equals(uuid)) return;
+        if(e.getSpawnReason() == CreatureSpawnEvent.SpawnReason.INFECTION || e.getSpawnReason() == CreatureSpawnEvent.SpawnReason.CURED) return;
+        if(e.getEntityType() == EntityType.PHANTOM) {
+            if(!square.in(e.getLocation())) return;
+            if (check(LandFlags.PHANTOM_SPAWN)) return;
+            e.setCancelled(true);
+            return;
+        }
+        if(!(e.getEntity() instanceof Monster)) return;
         if(!square.in(e.getLocation())) return;
         if (check(LandFlags.ENTITY_SPAWN)) return;
         e.setCancelled(true);
