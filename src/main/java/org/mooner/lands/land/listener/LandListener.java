@@ -252,6 +252,16 @@ public class LandListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGH)
+    public void onBookRemove(PlayerTakeLecternBookEvent e) {
+        if (e.isCancelled()) return;
+        if(e.getPlayer().isOp()) return;
+        if(!e.getPlayer().getWorld().getUID().equals(uuid)) return;
+        if(!square.in(e.getLectern().getLocation())) return;
+        if(check(LandFlags.REMOVE_LECTERN_BOOK, e.getPlayer())) return;
+        e.setCancelled(true);
+    }
+
+    @EventHandler(priority = EventPriority.HIGH)
     public void onTeleport(PlayerTeleportEvent e) {
         if (e.isCancelled()) return;
         if(e.getPlayer().isOp()) return;
@@ -397,7 +407,10 @@ public class LandListener implements Listener {
             if (e.getDamager() instanceof Player p) {
                 if (check(LandFlags.VILLAGER_DAMAGE_BY_PLAYER, p)) return;
                 e.setCancelled(true);
-            } else if(e.getDamager().getType() != EntityType.ZOMBIE) {
+            } else if(e.getDamager().getType() == EntityType.ZOMBIE || e.getDamager().getType() == EntityType.ZOMBIE_VILLAGER) {
+                if (check(LandFlags.VILLAGER_DAMAGE_BY_ZOMBIE)) return;
+                e.setCancelled(true);
+            } else {
                 if (check(LandFlags.PROTECT_VILLAGER)) return;
                 e.setCancelled(true);
             }
