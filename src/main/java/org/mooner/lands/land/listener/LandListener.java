@@ -113,20 +113,18 @@ public class LandListener implements Listener {
     public void onPistonExtend(BlockPistonExtendEvent e) {
         if (e.isCancelled()) return;
         if(!e.getBlock().getWorld().getUID().equals(uuid)) return;
-        if(e.getBlocks().stream().anyMatch(b -> square.in(b.getLocation()))) {
-            if (check(LandFlags.USE_PISTON)) return;
-            e.setCancelled(true);
-        }
+        if(square.in(e.getBlock().getLocation())) return;
+        if(check(LandFlags.USE_PISTON)) return;
+        e.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onPistonRetract(BlockPistonRetractEvent e) {
         if (e.isCancelled()) return;
         if(!e.getBlock().getWorld().getUID().equals(uuid)) return;
-        if(e.getBlocks().stream().anyMatch(b -> square.in(b.getLocation()))) {
-            if (check(LandFlags.USE_PISTON)) return;
-            e.setCancelled(true);
-        }
+        if(square.in(e.getBlock().getLocation())) return;
+        if(check(LandFlags.USE_PISTON)) return;
+        e.setCancelled(true);
     }
 
     private final ImmutableSet<Material> doors = ImmutableSet.of(Material.DARK_OAK_DOOR, Material.DARK_OAK_TRAPDOOR, Material.ACACIA_DOOR, Material.ACACIA_TRAPDOOR, Material.BIRCH_DOOR, Material.BIRCH_TRAPDOOR, Material.CRIMSON_DOOR, Material.CRIMSON_TRAPDOOR, Material.JUNGLE_DOOR, Material.JUNGLE_TRAPDOOR, Material.OAK_DOOR, Material.OAK_TRAPDOOR, Material.SPRUCE_DOOR, Material.SPRUCE_TRAPDOOR, Material.WARPED_DOOR, Material.WARPED_TRAPDOOR);
