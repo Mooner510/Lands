@@ -2,6 +2,7 @@ package org.mooner.lands.gui.gui;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -25,17 +26,19 @@ import static org.mooner.lands.gui.GUIUtils.createItem;
 
 public class HomeGUI {
     private Inventory inventory;
-    private Player player;
+    private OfflinePlayer player;
+    private Player viewer;
     private final Click listener = new Click();
     private HashMap<Integer, PlayerLand> dataMap;
 
-    public HomeGUI(Player p) {
+    public HomeGUI(OfflinePlayer p, Player viewer) {
         Bukkit.getScheduler().runTaskAsynchronously(lands, () -> {
             this.player = p;
+            this.viewer = viewer;
             dataMap = new HashMap<>();
             List<PlayerLand> playerLands = DatabaseManager.init.getPlayerLands(p.getUniqueId());
             int size = playerLands.size();
-            this.inventory = Bukkit.createInventory(p, size > 27 ? (size/9)+1 : 27 , chat("소유한 지역 목록 (" + size + "개)"));
+            this.inventory = Bukkit.createInventory(viewer, size > 27 ? (size/9)+1 : 27 , chat("소유한 지역 목록 (" + size + "개)"));
             int slot = 0;
             for (PlayerLand land : playerLands) {
                 dataMap.put(slot, land);
@@ -49,7 +52,7 @@ public class HomeGUI {
 
             Bukkit.getScheduler().runTask(lands, () -> {
                 Bukkit.getPluginManager().registerEvents(listener, lands);
-                this.player.openInventory(inventory);
+                this.viewer.openInventory(inventory);
             });
         });
     }
@@ -65,12 +68,13 @@ public class HomeGUI {
                     PlayerLand data = dataMap.get(e.getSlot());
                     if(dataMap != null) {
                         if (data != null) {
-                            Player p = player;
+                            Player p = viewer;
+                            viewer.closeInventory();
                             TpaAPI.backHere(p);
                             p.sendMessage(DatabaseManager.init.getMessage("teleport-home").replace("{1}", data.getName()));
-                            p.teleport(data.getSpawnLocation());
                             playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                            if(player != null) player.teleport(data.getSpawnLocation());
+                            p.teleport(data.getSpawnLocation());
+//                            if(player != null) player.teleport(data.getSpawnLocation());
                         }
                     }
                 }
