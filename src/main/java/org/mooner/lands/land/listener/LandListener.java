@@ -2,6 +2,7 @@ package org.mooner.lands.land.listener;
 
 import com.google.common.collect.ImmutableSet;
 import de.epiceric.shopchest.event.ShopCreateEvent;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.*;
@@ -47,10 +48,15 @@ public class LandListener implements Listener {
         return false;
     }
 
+    public static boolean loc(Location loc1, Location loc2) {
+        return loc2 != null && loc1.getX() == loc2.getX() && loc1.getZ() == loc2.getZ() && loc1.getYaw() == loc2.getYaw() && loc1.getPitch() == loc2.getPitch();
+    }
+
     @EventHandler(priority = EventPriority.HIGH)
     public void onMove(PlayerMoveEvent e) {
         if (e.isCancelled()) return;
         if(!e.getPlayer().getWorld().getUID().equals(uuid)) return;
+        if(loc(e.getFrom(), e.getTo())) return;
         if(e.getTo() != null && square.in(e.getTo())) {
             e.setCancelled(!check(LandFlags.MOVE_IN, e.getPlayer()));
         }

@@ -50,7 +50,7 @@ public class PlayerGUI {
             inventory.setItem(27, pane);
             inventory.setItem(35, pane);
 
-            inventory.setItem(4, createItem(Material.WRITABLE_BOOK, 1, "&a공유 플레이어 추가", "&7최대 5명과 한 지역을 공유할 수 있습니다.", "", "&e클릭하여 추가하기"));
+            inventory.setItem(4, createItem(Material.WRITABLE_BOOK, 1, "&a공유 플레이어 추가", "&7최대 "+PlayerLand.MAX_COOP_MEMBERS+"명과 한 지역을 공유할 수 있습니다.", "", "&e클릭하여 추가하기"));
 
             inventory.setItem(40, createItem(Material.BARRIER, 1, "&c돌아가기"));
 

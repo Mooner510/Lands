@@ -1,5 +1,6 @@
 package org.mooner.lands;
 
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -8,6 +9,7 @@ import org.mooner.lands.command.CommandManager;
 import org.mooner.lands.command.ICommand;
 import org.mooner.lands.command.IPlayerCommand;
 import org.mooner.lands.land.db.DatabaseManager;
+import org.mooner.lands.optimize.ChunkCleaner;
 
 import java.util.Collections;
 import java.util.List;
@@ -23,6 +25,7 @@ public final class Lands extends JavaPlugin {
     public void onEnable() {
         lands = this;
         getLogger().info("Plugin Enabled!");
+        Bukkit.getPluginManager().registerEvents(new ChunkCleaner(), this);
         CommandManager.init = new CommandManager();
 
         DatabaseManager.init = new DatabaseManager();

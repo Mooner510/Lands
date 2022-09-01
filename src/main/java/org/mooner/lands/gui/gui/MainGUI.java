@@ -59,7 +59,7 @@ public class MainGUI {
                         "&7공유 중인 플레이어: &b" + land.getCoopSize() + "명",
                         "&7지역 크기: &6" + distance * 2 + "x" + distance * 2
                 )));
-                inventory.setItem(8, createItem(Material.TNT, 1, "&c지역 삭제하기", "&7해당 지역을 삭제합니다.", "", "&7삭제시 구매한 가격의 &a20%&7를 돌려 받습니다.", "&7환불 가격: &6" + parseString(land.getCost() * 0.25, 1, true) + "원", "", "&c주의! 되돌릴 수 없습니다!"));
+                inventory.setItem(8, createItem(Material.TNT, 1, "&c지역 삭제하기", "&7해당 지역을 삭제합니다.", "", "&7삭제시 구매한 가격의 &a20%&7를 돌려 받습니다.", "&7환불 가격: &6" + parseString(land.getCost() * 0.2, 1, true) + "원", "", "&c주의! 되돌릴 수 없습니다!"));
                 inventory.setItem(10, createItem(Material.PLAYER_HEAD, 1, "&b공유 플레이어 추가", "&7지역을 공유할 플레이어를 추가합니다.", "&7지역 설정 권한은 주어지지 않습니다.", "", "&7현재 공유 중: &b" + land.getCoopSize() + "명"));
                 inventory.setItem(12, createItem(Material.ENDER_PEARL, 1, "&d워프 장소 설정", "&7클릭해 현재 위치를 워프 장소로 설정합니다."));
                 inventory.setItem(14, createItem(Material.COMMAND_BLOCK, 1, "&e지역 상세 설정", "&7해당 지역에 대해 상세적으로 설정합니다."));
