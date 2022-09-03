@@ -119,7 +119,7 @@ public class LandListener implements Listener {
     public void onPistonExtend(BlockPistonExtendEvent e) {
         if (e.isCancelled()) return;
         if(!e.getBlock().getWorld().getUID().equals(uuid)) return;
-        if(square.in(e.getBlock().getLocation())) return;
+        if(!square.in(e.getBlock().getLocation())) return;
         if(check(LandFlags.USE_PISTON)) return;
         e.setCancelled(true);
     }
@@ -128,7 +128,7 @@ public class LandListener implements Listener {
     public void onPistonRetract(BlockPistonRetractEvent e) {
         if (e.isCancelled()) return;
         if(!e.getBlock().getWorld().getUID().equals(uuid)) return;
-        if(square.in(e.getBlock().getLocation())) return;
+        if(!square.in(e.getBlock().getLocation())) return;
         if(check(LandFlags.USE_PISTON)) return;
         e.setCancelled(true);
     }
