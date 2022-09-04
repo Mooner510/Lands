@@ -6,6 +6,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.*;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -69,9 +70,9 @@ public class LandListener implements Listener {
     public void onPlace(BlockPlaceEvent e) {
         if (e.isCancelled()) return;
         if(e.getPlayer().isOp()) return;
+        if(check(LandFlags.BLOCK_PLACE, e.getPlayer())) return;
         if(!e.getBlock().getWorld().getUID().equals(uuid)) return;
         if(!square.in(e.getBlock().getLocation())) return;
-        if(check(LandFlags.BLOCK_PLACE, e.getPlayer())) return;
         e.setCancelled(true);
     }
 
@@ -79,9 +80,9 @@ public class LandListener implements Listener {
     public void onMultiPlace(BlockMultiPlaceEvent e) {
         if (e.isCancelled()) return;
         if(e.getPlayer().isOp()) return;
+        if(check(LandFlags.BLOCK_PLACE, e.getPlayer())) return;
         if(!e.getBlock().getWorld().getUID().equals(uuid)) return;
         if(!square.in(e.getBlock().getLocation())) return;
-        if(check(LandFlags.BLOCK_PLACE, e.getPlayer())) return;
         e.setCancelled(true);
     }
 
@@ -89,9 +90,9 @@ public class LandListener implements Listener {
     public void onBucketFill(PlayerBucketEmptyEvent e) {
         if (e.isCancelled()) return;
         if(e.getPlayer().isOp()) return;
+        if(check(LandFlags.BLOCK_PLACE, e.getPlayer())) return;
         if(!e.getBlock().getWorld().getUID().equals(uuid)) return;
         if(!square.in(e.getBlock().getLocation())) return;
-        if(check(LandFlags.BLOCK_PLACE, e.getPlayer())) return;
         e.setCancelled(true);
     }
 
@@ -99,9 +100,9 @@ public class LandListener implements Listener {
     public void onBreak(BlockBreakEvent e) {
         if (e.isCancelled()) return;
         if(e.getPlayer().isOp()) return;
+        if(check(LandFlags.BLOCK_BREAK, e.getPlayer())) return;
         if(!e.getBlock().getWorld().getUID().equals(uuid)) return;
         if(!square.in(e.getBlock().getLocation())) return;
-        if(check(LandFlags.BLOCK_BREAK, e.getPlayer())) return;
         e.setCancelled(true);
     }
 
@@ -109,27 +110,27 @@ public class LandListener implements Listener {
     public void onBucketFill(PlayerBucketFillEvent e) {
         if (e.isCancelled()) return;
         if(e.getPlayer().isOp()) return;
+        if(check(LandFlags.BLOCK_BREAK, e.getPlayer())) return;
         if(!e.getBlock().getWorld().getUID().equals(uuid)) return;
         if(!square.in(e.getBlock().getLocation())) return;
-        if(check(LandFlags.BLOCK_BREAK, e.getPlayer())) return;
         e.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onPistonExtend(BlockPistonExtendEvent e) {
         if (e.isCancelled()) return;
+        if(check(LandFlags.USE_PISTON)) return;
         if(!e.getBlock().getWorld().getUID().equals(uuid)) return;
         if(!square.in(e.getBlock().getLocation())) return;
-        if(check(LandFlags.USE_PISTON)) return;
         e.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onPistonRetract(BlockPistonRetractEvent e) {
         if (e.isCancelled()) return;
+        if(check(LandFlags.USE_PISTON)) return;
         if(!e.getBlock().getWorld().getUID().equals(uuid)) return;
         if(!square.in(e.getBlock().getLocation())) return;
-        if(check(LandFlags.USE_PISTON)) return;
         e.setCancelled(true);
     }
 
@@ -145,85 +146,85 @@ public class LandListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onInteract(PlayerInteractEvent e) {
-        if (e.isCancelled()) return;
+        if (e.useInteractedBlock() == Event.Result.DENY || e.useItemInHand() == Event.Result.DENY) return;
         if(e.getPlayer().isOp()) return;
         if(!e.getPlayer().getWorld().getUID().equals(uuid)) return;
         Block b = e.getClickedBlock();
         if(e.getAction() == Action.PHYSICAL && b != null) {
             if(!plates.contains(b.getType())) return;
-            if(!square.in(b.getLocation())) return;
             if(check(LandFlags.USE_PLATE, e.getPlayer())) return;
+            if(!square.in(b.getLocation())) return;
             e.setCancelled(true);
         } else if(e.getAction() == Action.LEFT_CLICK_BLOCK && b != null) {
             if (b.getType() == Material.NOTE_BLOCK) {
-                if(!square.in(b.getLocation())) return;
                 if(check(LandFlags.PLAY_NOTE_BLOCK, e.getPlayer())) return;
+                if(!square.in(b.getLocation())) return;
                 e.setCancelled(true);
             }else if (b.getType() == Material.JUKEBOX) {
-                if(!square.in(b.getLocation())) return;
                 if(check(LandFlags.USE_JUKEBOX, e.getPlayer())) return;
+                if(!square.in(b.getLocation())) return;
                 e.setCancelled(true);
             }
         } else if(e.getAction() == Action.RIGHT_CLICK_BLOCK && b != null) {
             if (e.getItem() != null && e.getItem().getType().isBlock() && e.getPlayer().isSneaking()) return;
             if (b.getType() == Material.ANVIL || b.getType() == Material.CHIPPED_ANVIL || b.getType() == Material.DAMAGED_ANVIL) {
-                if(!square.in(b.getLocation())) return;
                 if(check(LandFlags.USE_ANVIL, e.getPlayer())) return;
+                if(!square.in(b.getLocation())) return;
                 e.setCancelled(true);
             } else if (b.getType() == Material.ENCHANTING_TABLE || b.getType() == Material.GRINDSTONE) {
-                if(!square.in(b.getLocation())) return;
                 if(check(LandFlags.USE_ENCHANTMENTS, e.getPlayer())) return;
+                if(!square.in(b.getLocation())) return;
                 e.setCancelled(true);
             } else if (b.getType() == Material.REPEATER || b.getType() == Material.COMPARATOR) {
-                if(!square.in(b.getLocation())) return;
                 if(check(LandFlags.USE_REDSTONE, e.getPlayer())) return;
+                if(!square.in(b.getLocation())) return;
                 e.setCancelled(true);
             } else if (b.getType() == Material.NOTE_BLOCK) {
-                if(!square.in(b.getLocation())) return;
                 if(check(LandFlags.EDIT_NOTE_BLOCK, e.getPlayer())) return;
+                if(!square.in(b.getLocation())) return;
                 e.setCancelled(true);
             } else if (b.getType() == Material.JUKEBOX) {
-                if(!square.in(b.getLocation())) return;
                 if(check(LandFlags.USE_JUKEBOX, e.getPlayer())) return;
+                if(!square.in(b.getLocation())) return;
                 e.setCancelled(true);
             } else if (b.getType() == Material.FURNACE || b.getType() == Material.SMOKER || b.getType() == Material.BLAST_FURNACE || b.getType() == Material.CAMPFIRE || b.getType() == Material.SOUL_CAMPFIRE) {
-                if(!square.in(b.getLocation())) return;
                 if(check(LandFlags.USE_FURNACE, e.getPlayer())) return;
+                if(!square.in(b.getLocation())) return;
                 e.setCancelled(true);
             } else if (b.getType() == Material.FLOWER_POT || b.getType() == Material.COMPOSTER) {
-                if(!square.in(b.getLocation())) return;
                 if(check(LandFlags.USE_FARM_BLOCK, e.getPlayer())) return;
+                if(!square.in(b.getLocation())) return;
                 e.setCancelled(true);
             } else if (b.getType() == Material.BEE_NEST || b.getType() == Material.BEEHIVE) {
-                if(!square.in(b.getLocation())) return;
                 if(check(LandFlags.USE_BEE, e.getPlayer())) return;
+                if(!square.in(b.getLocation())) return;
                 e.setCancelled(true);
             } else if (b.getType() == Material.LODESTONE) {
-                if(!square.in(b.getLocation())) return;
                 if(check(LandFlags.USE_LODESTONE, e.getPlayer())) return;
+                if(!square.in(b.getLocation())) return;
                 e.setCancelled(true);
             } else if (b.getType() == Material.CHEST || b.getType() == Material.ENDER_CHEST || b.getType() == Material.TRAPPED_CHEST || b.getType() == Material.BARREL || b.getType() == Material.HOPPER || shulker_box.contains(b.getType())) {
-                if(!square.in(b.getLocation())) return;
                 if(check(LandFlags.USE_CHEST, e.getPlayer())) return;
+                if(!square.in(b.getLocation())) return;
                 e.setCancelled(true);
             } else if (doors.contains(b.getType())) {
-                if(!square.in(b.getLocation())) return;
                 if(check(LandFlags.OPEN, e.getPlayer())) return;
+                if(!square.in(b.getLocation())) return;
                 e.setCancelled(true);
             } else if (buttons.contains(b.getType())) {
-                if(!square.in(b.getLocation())) return;
                 if(check(LandFlags.USE_BUTTON, e.getPlayer())) return;
+                if(!square.in(b.getLocation())) return;
                 e.setCancelled(true);
             } else if (beds.contains(b.getType())) {
-                if(!square.in(b.getLocation())) return;
                 if(check(LandFlags.USE_BED, e.getPlayer())) return;
+                if(!square.in(b.getLocation())) return;
                 e.setCancelled(true);
             }
         } else if(e.getAction() == Action.RIGHT_CLICK_AIR) {
             if(e.getItem() != null) {
                 if (e.getItem().getType() == Material.ENDER_PEARL) {
-                    if(!square.in(e.getPlayer().getLocation())) return;
                     if(check(LandFlags.ENDER_PEARL_TELEPORT, e.getPlayer())) return;
+                    if(!square.in(e.getPlayer().getLocation())) return;
                     e.setCancelled(true);
                 }
             }
@@ -237,20 +238,20 @@ public class LandListener implements Listener {
         if(!e.getPlayer().getWorld().getUID().equals(uuid)) return;
         Entity entity = e.getRightClicked();
         if(entity.getType() == EntityType.ITEM_FRAME || entity.getType() == EntityType.GLOW_ITEM_FRAME) {
-            if(!square.in(entity.getLocation())) return;
             if (check(LandFlags.USE_ITEM_FRAME, e.getPlayer())) return;
+            if(!square.in(entity.getLocation())) return;
             e.setCancelled(true);
         } else if(entity.getType() == EntityType.VILLAGER) {
-            if(!square.in(entity.getLocation())) return;
             if(check(LandFlags.TRADE, e.getPlayer())) return;
+            if(!square.in(entity.getLocation())) return;
             e.setCancelled(true);
         } else if(entity.getType() == EntityType.MINECART_HOPPER || entity.getType() == EntityType.MINECART_CHEST) {
-            if(!square.in(entity.getLocation())) return;
             if(check(LandFlags.USE_CHEST, e.getPlayer())) return;
+            if(!square.in(entity.getLocation())) return;
             e.setCancelled(true);
         } else if(entity instanceof Vehicle) {
-            if(!square.in(entity.getLocation())) return;
             if(check(LandFlags.RIDE, e.getPlayer())) return;
+            if(!square.in(entity.getLocation())) return;
             e.setCancelled(true);
         }
     }
@@ -259,9 +260,9 @@ public class LandListener implements Listener {
     public void onBookRemove(PlayerTakeLecternBookEvent e) {
         if (e.isCancelled()) return;
         if(e.getPlayer().isOp()) return;
+        if(check(LandFlags.REMOVE_LECTERN_BOOK, e.getPlayer())) return;
         if(!e.getPlayer().getWorld().getUID().equals(uuid)) return;
         if(!square.in(e.getLectern().getLocation())) return;
-        if(check(LandFlags.REMOVE_LECTERN_BOOK, e.getPlayer())) return;
         e.setCancelled(true);
     }
 
@@ -296,9 +297,9 @@ public class LandListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH)
     public void onLightning(LightningStrikeEvent e) {
         if (e.isCancelled()) return;
+        if(check(LandFlags.LIGHTNING)) return;
         if(!e.getWorld().getUID().equals(uuid)) return;
         if(!square.in(e.getLightning().getLocation())) return;
-        if(check(LandFlags.LIGHTNING)) return;
         e.setCancelled(true);
     }
 
@@ -308,8 +309,8 @@ public class LandListener implements Listener {
         if(!e.getEntity().getWorld().getUID().equals(uuid)) return;
         if (e.getEntity() instanceof Player p) {
             if(p.isOp()) return;
-            if(!square.in(e.getItem().getLocation())) return;
             if(check(LandFlags.ITEM_PICKUP, p)) return;
+            if(!square.in(e.getItem().getLocation())) return;
             e.setCancelled(true);
         }
     }
@@ -318,9 +319,9 @@ public class LandListener implements Listener {
     public void onThrow(PlayerDropItemEvent e) {
         if (e.isCancelled()) return;
         if(e.getPlayer().isOp()) return;
+        if(check(LandFlags.ITEM_THROW, e.getPlayer())) return;
         if(!e.getPlayer().getWorld().getUID().equals(uuid)) return;
         if(!square.in(e.getPlayer().getLocation())) return;
-        if(check(LandFlags.ITEM_THROW, e.getPlayer())) return;
         e.setCancelled(true);
     }
 
@@ -329,8 +330,8 @@ public class LandListener implements Listener {
         if (e.isCancelled()) return;
         if(!e.getBlock().getWorld().getUID().equals(uuid)) return;
         if (e.getBlock().getType() == Material.FIRE) {
-            if(!square.in(e.getBlock().getLocation())) return;
             if(check(LandFlags.FIRE)) return;
+            if(!square.in(e.getBlock().getLocation())) return;
             e.setCancelled(true);
         }
     }
@@ -340,8 +341,8 @@ public class LandListener implements Listener {
         if (e.isCancelled()) return;
         if(!e.getBlock().getWorld().getUID().equals(uuid)) return;
         if (e.getBlock().getType() == Material.SNOW) {
-            if(!square.in(e.getBlock().getLocation())) return;
             if(check(LandFlags.SNOW)) return;
+            if(!square.in(e.getBlock().getLocation())) return;
             e.setCancelled(true);
         }
     }
@@ -351,8 +352,8 @@ public class LandListener implements Listener {
         if (e.isCancelled()) return;
         if(!e.getBlock().getWorld().getUID().equals(uuid)) return;
         if (e.getBlock().getType() == Material.LAVA) {
-            if(!square.in(e.getBlock().getLocation())) return;
             if(check(LandFlags.LAVA_FLOW)) return;
+            if(!square.in(e.getBlock().getLocation())) return;
             e.setCancelled(true);
         }
     }
@@ -360,9 +361,9 @@ public class LandListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH)
     public void onShopCreate(ShopCreateEvent e) {
         if (e.isCancelled()) return;
+        if(check(LandFlags.CREATE_SHOP)) return;
         if(!e.getPlayer().getWorld().getUID().equals(uuid)) return;
         if(!square.in(e.getShop().getLocation())) return;
-        if(check(LandFlags.CREATE_SHOP)) return;
         e.setCancelled(true);
     }
 
@@ -371,13 +372,13 @@ public class LandListener implements Listener {
         if (e.isCancelled()) return;
         if(e.getEntity() instanceof Player) {
             if (e.getCause() == EntityDamageEvent.DamageCause.FALL) {
-                if (!square.in(e.getEntity().getLocation())) return;
                 if (check(LandFlags.FALL_DAMAGE)) return;
+                if (!square.in(e.getEntity().getLocation())) return;
                 e.setCancelled(true);
             }
         } else if(e.getEntityType() == EntityType.VILLAGER) {
-            if (!square.in(e.getEntity().getLocation())) return;
             if (check(LandFlags.PROTECT_VILLAGER)) return;
+            if (!square.in(e.getEntity().getLocation())) return;
             e.setCancelled(true);
         }
     }
@@ -398,13 +399,13 @@ public class LandListener implements Listener {
             e.setCancelled(true);
         } else if(e.getEntity() instanceof Player p) {
             if (e.getDamager() instanceof Player) return;
-            if(!square.in(e.getEntity().getLocation())) return;
             if (check(LandFlags.PLAYER_DAMAGE_BY_ENTITY, p)) return;
+            if(!square.in(e.getEntity().getLocation())) return;
             e.setCancelled(true);
         } else if(e.getEntity() instanceof Animals) {
             if (!(e.getDamager() instanceof Player p)) return;
-            if(!square.in(e.getEntity().getLocation())) return;
             if (check(LandFlags.ANIMAL_DAMAGE_BY_PLAYER, p)) return;
+            if(!square.in(e.getEntity().getLocation())) return;
             e.setCancelled(true);
         } else if(e.getEntityType() == EntityType.VILLAGER) {
             if (!square.in(e.getEntity().getLocation())) return;
@@ -420,14 +421,12 @@ public class LandListener implements Listener {
             }
         } else if(e.getEntityType() == EntityType.ITEM_FRAME || e.getEntityType() == EntityType.GLOW_ITEM_FRAME) {
             if(e.getDamager() instanceof Player p) {
-                if(!square.in(e.getEntity().getLocation())) return;
                 if (check(LandFlags.USE_ITEM_FRAME, p)) return;
-                e.setCancelled(true);
             } else {
-                if(!square.in(e.getEntity().getLocation())) return;
                 if (check(LandFlags.PROTECT_ITEM_FRAME)) return;
-                e.setCancelled(true);
             }
+            if(!square.in(e.getEntity().getLocation())) return;
+            e.setCancelled(true);
         }
     }
 
@@ -439,14 +438,14 @@ public class LandListener implements Listener {
         if(!e.getEntity().getWorld().getUID().equals(uuid)) return;
         if(e.getSpawnReason() == CreatureSpawnEvent.SpawnReason.INFECTION || e.getSpawnReason() == CreatureSpawnEvent.SpawnReason.CURED) return;
         if(e.getEntityType() == EntityType.PHANTOM) {
-            if(!square.in(e.getLocation())) return;
             if (check(LandFlags.PHANTOM_SPAWN)) return;
+            if(!square.in(e.getLocation())) return;
             e.setCancelled(true);
             return;
         }
         if(!(e.getEntity() instanceof Monster)) return;
-        if(!square.in(e.getLocation())) return;
         if (check(LandFlags.ENTITY_SPAWN)) return;
+        if(!square.in(e.getLocation())) return;
         e.setCancelled(true);
     }
 
@@ -454,27 +453,27 @@ public class LandListener implements Listener {
     public void onBlockChange(EntityChangeBlockEvent e) {
         if (e.isCancelled()) return;
         if (e.getEntityType() != EntityType.ENDERMAN) return;
+        if (check(LandFlags.ENDERMAN_BLOCK)) return;
         if(!e.getEntity().getWorld().getUID().equals(uuid)) return;
         if(!square.in(e.getBlock().getLocation())) return;
-        if (check(LandFlags.ENDERMAN_BLOCK)) return;
         e.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onGrow(BlockGrowEvent e) {
         if (e.isCancelled()) return;
+        if (check(LandFlags.GROW)) return;
         if(!e.getBlock().getWorld().getUID().equals(uuid)) return;
         if(!square.in(e.getBlock().getLocation())) return;
-        if (check(LandFlags.GROW)) return;
         e.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onStructureGrow(StructureGrowEvent e) {
         if (e.isCancelled()) return;
+        if (check(LandFlags.GROW)) return;
         if(!e.getWorld().getUID().equals(uuid)) return;
         if(!square.in(e.getLocation())) return;
-        if (check(LandFlags.GROW)) return;
         e.setCancelled(true);
     }
 
@@ -482,9 +481,9 @@ public class LandListener implements Listener {
     public void onPickupEXP(PlayerExpChangeEvent e) {
         if (e.getAmount() == 0) return;
         if(e.getPlayer().isOp()) return;
+        if (check(LandFlags.EXP_PICKUP, e.getPlayer())) return;
         if(!e.getPlayer().getWorld().getUID().equals(uuid)) return;
         if(!square.in(e.getPlayer().getLocation())) return;
-        if (check(LandFlags.EXP_PICKUP, e.getPlayer())) return;
         e.setAmount(0);
     }
 }
