@@ -2,6 +2,7 @@ package org.mooner.lands.optimize;
 
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Illager;
 import org.bukkit.entity.Monster;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -21,6 +22,9 @@ public class ChunkCleaner implements Listener {
 
     @EventHandler
     public void onSpawn(CreatureSpawnEvent e) {
+        if(e.getEntity().getType() == EntityType.PLAYER) return;
+        if(e.getEntity() instanceof Illager) return;
+        if(e.getEntity().getType() == EntityType.VINDICATOR || e.getEntity().getType() == EntityType.VEX || e.getEntity().getType() == EntityType.STRAY) return;
         final double random = Math.random();
         e.setCancelled(switch (e.getEntityType()) {
             case ZOMBIFIED_PIGLIN -> random <= 0.8;
