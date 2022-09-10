@@ -270,26 +270,20 @@ public class LandListener implements Listener {
     public void onTeleport(PlayerTeleportEvent e) {
         if (e.isCancelled()) return;
         if(e.getPlayer().isOp()) return;
+        if(e.getCause() == PlayerTeleportEvent.TeleportCause.COMMAND || e.getCause() == PlayerTeleportEvent.TeleportCause.PLUGIN || e.getCause() == PlayerTeleportEvent.TeleportCause.UNKNOWN) return;
         if(!e.getPlayer().getWorld().getUID().equals(uuid)) return;
         final boolean to = e.getTo() != null && square.in(e.getTo());
-        final boolean from = square.in(e.getFrom());
-        if(e.getCause() != PlayerTeleportEvent.TeleportCause.COMMAND) {
-            if (from && !check(LandFlags.MOVE_OUT, e.getPlayer())) {
-                e.setCancelled(true);
-                return;
-            }
-            if (to && !check(LandFlags.MOVE_IN, e.getPlayer())) {
-                e.setCancelled(true);
-                return;
-            }
-        }
-        if(e.getCause() == PlayerTeleportEvent.TeleportCause.ENDER_PEARL) {
-            if(to && !check(LandFlags.ENDER_PEARL_TELEPORT, e.getPlayer())) {
-                e.setCancelled(true);
-            }
-        } else if(e.getCause() == PlayerTeleportEvent.TeleportCause.CHORUS_FRUIT) {
-            if(to && !check(LandFlags.FRUIT_TELEPORT, e.getPlayer())) {
-                e.setCancelled(true);
+//        final boolean from = square.in(e.getFrom());
+        switch (e.getCause()) {
+//            case COMMAND -> {
+//                if ((from && !check(LandFlags.MOVE_OUT, e.getPlayer())) || (to && !check(LandFlags.MOVE_IN, e.getPlayer()))) {
+//                    e.setCancelled(true);
+//                }
+//            }
+            case ENDER_PEARL, CHORUS_FRUIT -> {
+                if(to && !check(LandFlags.ENDER_PEARL_TELEPORT, e.getPlayer())) {
+                    e.setCancelled(true);
+                }
             }
         }
     }
@@ -377,7 +371,7 @@ public class LandListener implements Listener {
                 e.setCancelled(true);
             }
         } else if(e.getEntityType() == EntityType.VILLAGER) {
-            if (check(LandFlags.PROTECT_VILLAGER)) return;
+            if (!check(LandFlags.PROTECT_VILLAGER)) return;
             if (!square.in(e.getEntity().getLocation())) return;
             e.setCancelled(true);
         }
@@ -416,7 +410,7 @@ public class LandListener implements Listener {
                 if (check(LandFlags.VILLAGER_DAMAGE_BY_ZOMBIE)) return;
                 e.setCancelled(true);
             } else {
-                if (check(LandFlags.PROTECT_VILLAGER)) return;
+                if (!check(LandFlags.PROTECT_VILLAGER)) return;
                 e.setCancelled(true);
             }
         } else if(e.getEntityType() == EntityType.ITEM_FRAME || e.getEntityType() == EntityType.GLOW_ITEM_FRAME) {

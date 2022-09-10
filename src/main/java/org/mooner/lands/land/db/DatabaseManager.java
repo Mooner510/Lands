@@ -292,18 +292,22 @@ public class DatabaseManager {
     }
 
     public void setSpawnLocation(int land, Location loc) {
-        try (
-                Connection c = DriverManager.getConnection(DatabaseManager.CONNECTION);
-                PreparedStatement s2 = c.prepareStatement("UPDATE Lands SET x=?, z=?, world=? where id=?")
-        ) {
-            s2.setInt(1, loc.getBlockX());
-            s2.setInt(2, loc.getBlockZ());
-            s2.setString(3, loc.getWorld().getName());
-            s2.setInt(4, land);
-            s2.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        Bukkit.getScheduler().runTaskAsynchronously(lands, () -> {
+            try (
+                    Connection c = DriverManager.getConnection(DatabaseManager.CONNECTION);
+                    PreparedStatement s2 = c.prepareStatement("UPDATE Lands SET x=?, z=?, world=? where id=?")
+            ) {
+                s2.setInt(1, loc.getBlockX());
+                s2.setInt(2, loc.getBlockZ());
+                s2.setString(3, loc.getWorld().getName());
+                s2.setInt(4, land);
+                s2.executeUpdate();
+            } catch (SQLException e) {
+                if (e.getErrorCode() == 5 || e.getErrorCode() == 6)
+                    Bukkit.getScheduler().runTaskLater(lands, () -> setSpawnLocation(land, loc), 5);
+                else e.printStackTrace();
+            }
+        });
     }
 
     public LandCoopState addCoop(int land, String name) {
@@ -342,22 +346,47 @@ public class DatabaseManager {
         return state;
     }
 
+    private void addCoopFromDB(int id, String coop) {
+        Bukkit.getScheduler().runTaskAsynchronously(lands, () -> {
+            try (
+                    Connection c = DriverManager.getConnection(DatabaseManager.CONNECTION);
+                    PreparedStatement s2 = c.prepareStatement("UPDATE Lands SET coop=? where id=?")
+            ) {
+                s2.setString(1, coop);
+                s2.setInt(2, id);
+                s2.executeUpdate();
+            } catch (SQLException e) {
+                if (e.getErrorCode() == 5 || e.getErrorCode() == 6)
+                    Bukkit.getScheduler().runTaskLater(lands, () -> addCoopFromDB(id, coop), 5);
+                else e.printStackTrace();
+            }
+        });
+    }
+
     public LandCoopState removeCoop(int land, String name) {
         PlayerLand l = getPlayerLand(land);
         if(l == null) return LandCoopState.NOT_FOUND_LAND;
         final LandCoopState state = l.removeCoop(name);
         if (state != LandCoopState.COMPLETE) return state;
-        try (
-                Connection c = DriverManager.getConnection(DatabaseManager.CONNECTION);
-                PreparedStatement s2 = c.prepareStatement("UPDATE Lands SET coop=? where id=?")
-        ) {
-            s2.setString(1, l.getCoop());
-            s2.setInt(2, land);
-            s2.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        removeCoopFromDB(land, l.getCoop());
         return state;
+    }
+
+    private void removeCoopFromDB(int id, String coop) {
+        Bukkit.getScheduler().runTaskAsynchronously(lands, () -> {
+            try (
+                    Connection c = DriverManager.getConnection(DatabaseManager.CONNECTION);
+                    PreparedStatement s2 = c.prepareStatement("UPDATE Lands SET coop=? where id=?")
+            ) {
+                s2.setString(1, coop);
+                s2.setInt(2, id);
+                s2.executeUpdate();
+            } catch (SQLException e) {
+                if(e.getErrorCode() == 5 || e.getErrorCode() == 6)
+                    Bukkit.getScheduler().runTaskLater(lands, () -> removeCoop(id, coop), 5);
+                else e.printStackTrace();
+            }
+        });
     }
 
     public LandCoopState removeCoop(int land, UUID uuid) {
@@ -365,16 +394,7 @@ public class DatabaseManager {
         if(l == null) return LandCoopState.NOT_FOUND_LAND;
         final LandCoopState state = l.removeCoop(uuid);
         if (state != LandCoopState.COMPLETE) return state;
-        try (
-                Connection c = DriverManager.getConnection(DatabaseManager.CONNECTION);
-                PreparedStatement s2 = c.prepareStatement("UPDATE Lands SET coop=? where id=?")
-        ) {
-            s2.setString(1, l.getCoop());
-            s2.setInt(2, land);
-            s2.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        removeCoopFromDB(land, l.getCoop());
         return state;
     }
 
@@ -434,18 +454,25 @@ public class DatabaseManager {
     public void deleteLand(int land) {
         playerLands.removeIf(l -> l.getId() == land);
         landManagerMap.remove(land).unregister();
-        try (
-                Connection c = DriverManager.getConnection(DatabaseManager.CONNECTION);
-                PreparedStatement s = c.prepareStatement("DELETE From Flags where land=?");
-                PreparedStatement s2 = c.prepareStatement("DELETE From Lands where id=?")
-        ) {
-            s.setInt(1, land);
-            s.execute();
-            s2.setInt(1, land);
-            s2.execute();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+    }
+
+    private void deleteLandFromDB(int land) {
+        Bukkit.getScheduler().runTaskAsynchronously(lands, () -> {
+            try (
+                    Connection c = DriverManager.getConnection(DatabaseManager.CONNECTION);
+                    PreparedStatement s = c.prepareStatement("DELETE From Flags where land=?");
+                    PreparedStatement s2 = c.prepareStatement("DELETE From Lands where id=?")
+            ) {
+                s.setInt(1, land);
+                s.execute();
+                s2.setInt(1, land);
+                s2.execute();
+            } catch (SQLException e) {
+                if(e.getErrorCode() == 5 || e.getErrorCode() == 6)
+                    Bukkit.getScheduler().runTaskLater(lands, () -> deleteLandFromDB(land), 5);
+                else e.printStackTrace();
+            }
+        });
     }
 
     public boolean canBuy(UUID uuid, Location location, LandsData data) {

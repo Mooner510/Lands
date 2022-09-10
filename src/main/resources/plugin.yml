@@ -15,4 +15,5 @@ commands:
     description: "land"
   rtp:
     aliases:
-      - 렌덤텔레포트
+      - 렌덤텔포
+      - fpsejaxpfvh

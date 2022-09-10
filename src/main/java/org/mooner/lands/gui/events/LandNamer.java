@@ -28,7 +28,7 @@ public record LandNamer(Player p, LandsData data) {
             if(!e.getPlayer().getUniqueId().equals(p.getUniqueId())) return;
             e.setCancelled(true);
             Bukkit.getScheduler().runTask(lands, () -> {
-                switch (DatabaseManager.init.setLand(p.getUniqueId(), e.getMessage(), p.getLocation(), data)) {
+                switch (DatabaseManager.init.setLand(p.getUniqueId(), e.getMessage(), p.getLocation().clone(), data)) {
                     case MAX_LANDS -> p.sendMessage(DatabaseManager.init.getMessage("land-create-max-land"));
                     case ALREADY_EXISTS -> p.sendMessage(DatabaseManager.init.getMessage("land-create-already-exists"));
                     case OTHER_LAND -> p.sendMessage(DatabaseManager.init.getMessage("land-create-other-land"));
