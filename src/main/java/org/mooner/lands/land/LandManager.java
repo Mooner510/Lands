@@ -1,6 +1,7 @@
 package org.mooner.lands.land;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.event.HandlerList;
 import org.mooner.lands.Lands;
 import org.mooner.lands.land.db.DatabaseManager;
@@ -34,13 +35,24 @@ public class LandManager {
         register();
     }
 
-    public void register() {
+    public void update(Location loc) {
+        if(listener != null) unregisterEvent();
+        square = new Square(loc.getBlockX(), loc.getBlockZ(), square.getDistance());
         Bukkit.getPluginManager().registerEvents(listener = new LandListener(landId, world, square), Lands.lands);
     }
 
-    public void unregister() {
+    public void register() {
+        if(listener != null) unregisterEvent();
+        Bukkit.getPluginManager().registerEvents(listener = new LandListener(landId, world, square), Lands.lands);
+    }
+
+    public void unregisterEvent() {
         HandlerList.unregisterAll(listener);
         listener = null;
+    }
+
+    public void unregister() {
+        unregisterEvent();
         square = null;
         flagMap = null;
         valueMap = null;

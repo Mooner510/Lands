@@ -6,6 +6,7 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.chat.hover.content.Text;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -84,12 +85,14 @@ public class CmdLand implements ICommand {
                                     final OfflinePlayer owner = Bukkit.getOfflinePlayer(land.getOwner());
                                     final int fromX = land.getSquare().getX();
                                     final int fromZ = land.getSquare().getZ();
-                                    p.sendMessage(chat(BungeeAPI.getPlayerRank(owner).getPrefix() + owner.getName() + "&a님의 땅 &b"+land.getName()+"&a의 중심을 &6" + fromX + ", " + fromZ + "&a에서 &6" + p.getLocation().getBlockX() + ", " + p.getLocation().getZ() + "&a으로 변경했습니다."));
+                                    final Location location = p.getLocation().clone();
+                                    p.sendMessage(chat(BungeeAPI.getPlayerRank(owner).getPrefix() + owner.getName() + "&a님의 땅 &b"+land.getName()+"&a의 중심을 &6" + fromX + ", " + fromZ + "&a에서 &6" + location.getBlockX() + ", " + location.getZ() + "&a으로 변경했습니다."));
                                     TextComponent text = new TextComponent(chat("&7변경사항을 취소하시려면 &b&l여기&r&7를 클릭하세요."));
                                     text.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/land restore " + p.getUniqueId() + " " + id + " " + fromX + " " + fromZ));
                                     text.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(chat("&e클릭하여 복구하세요!"))));
                                     p.spigot().sendMessage(text);
-                                    land.setCenterLocation(p.getLocation());
+                                    land.setCenterLocation(location);
+                                    DatabaseManager.init.getLandManager(id).update(location);
                                 } catch (NumberFormatException e) {
                                     final List<PlayerLand> lands = DatabaseManager.init.searchPlayerLands(arg[1]);
                                     if(lands.isEmpty()) {
