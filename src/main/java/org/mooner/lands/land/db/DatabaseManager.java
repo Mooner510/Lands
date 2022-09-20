@@ -256,6 +256,7 @@ public class DatabaseManager {
         final OfflinePlayer offline = Bukkit.getOfflinePlayer(uuid);
         if(!EcoAPI.init.hasPay(offline, data.getCost())) return LandState.NOT_ENOUGH_MONEY;
         if(!notContainsWorld(location.getWorld())) return LandState.NO_WORLD;
+        if(name.contains("#")) return LandState.NO_NAME;
         if(checkPlayerLandsWithName(uuid, name)) return LandState.DUPE_NAME;
         List<PlayerLand> lands = getPlayerLands(uuid);
         if(lands.size() >= maxLands) return LandState.MAX_LANDS;
@@ -291,6 +292,28 @@ public class DatabaseManager {
             landManagerMap.put(land.getId(), new LandManager(land, null));
         });
         return LandState.COMPLETE;
+    }
+
+    public void setCenterLocation(int land, int x, int z) {
+        Bukkit.getScheduler().runTaskAsynchronously(lands, () -> {
+            try (
+                    Connection c = DriverManager.getConnection(DatabaseManager.CONNECTION);
+                    PreparedStatement s2 = c.prepareStatement("UPDATE Lands SET x=?, z=? where id=?")
+            ) {
+                s2.setInt(1, x);
+                s2.setInt(2, z);
+                s2.setInt(3, land);
+                s2.executeUpdate();
+            } catch (SQLException e) {
+                if (e.getErrorCode() == 5 || e.getErrorCode() == 6)
+                    Bukkit.getScheduler().runTaskLater(lands, () -> setCenterLocation(land, x, z), 5);
+                else e.printStackTrace();
+            }
+        });
+    }
+
+    public void setCenterLocation(int land, Location location) {
+        setCenterLocation(land, location.getBlockX(), location.getBlockZ());
     }
 
     public void setSpawnLocation(int land, Location location) {
@@ -542,6 +565,7 @@ public class DatabaseManager {
                 .orElse(null);
     }
 
+    @Nullable
     public PlayerLand getPlayerLand(int id) {
         return playerLands.stream()
                 .filter(land -> land.getId() == id)
@@ -561,7 +585,22 @@ public class DatabaseManager {
                 .toList();
     }
 
+    public List<PlayerLand> searchPlayerLands(String name) {
+        String finalName = name.toLowerCase();
+        return playerLands.stream()
+                .filter(land -> Bukkit.getOfflinePlayer(land.getOwner()).getName().contains(name) || land.getName().toLowerCase().replace(" ", "").contains(finalName))
+                .sorted(Comparator.comparing(PlayerLand::getName))
+                .limit(12)
+                .toList();
+    }
+
     public Set<PlayerLand> getPlayerLands() {
         return playerLands;
+    }
+
+    public List<String> getPlayerLandNames() {
+        return playerLands.stream()
+                .map(PlayerLand::getName)
+                .toList();
     }
 }

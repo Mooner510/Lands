@@ -1,22 +1,28 @@
 package org.mooner.lands.command.commands;
 
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.chat.hover.content.Text;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.mooner.lands.Lands;
 import org.mooner.lands.command.ICommand;
 import org.mooner.lands.gui.gui.DupeLandsGUI;
 import org.mooner.lands.gui.gui.HomeGUI;
 import org.mooner.lands.gui.gui.MainGUI;
+import org.mooner.lands.land.PlayerLand;
 import org.mooner.lands.land.db.DatabaseManager;
+import org.mooner.moonerbungeeapi.api.BungeeAPI;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 import static org.mooner.lands.MoonerUtils.chat;
 
@@ -60,7 +66,72 @@ public class CmdLand implements ICommand {
                     if (sender instanceof Player p) {
                         if (sender.isOp()) {
                             new DupeLandsGUI(p);
-                            return true;
+                        }
+                    }
+                }
+                case "center" -> {
+                    if (sender instanceof Player p) {
+                        if (sender.isOp()) {
+                            if(arg.length > 1) {
+                                try {
+                                    if(!arg[1].startsWith("##")) throw new NumberFormatException();
+                                    int id = Integer.parseInt(arg[1].substring(2));
+                                    final PlayerLand land = DatabaseManager.init.getPlayerLand(id);
+                                    if(land == null) {
+                                        p.sendMessage(chat("&c해당 id의 땅을 찾을 수 없습니다."));
+                                        return true;
+                                    }
+                                    final OfflinePlayer owner = Bukkit.getOfflinePlayer(land.getOwner());
+                                    final int fromX = land.getSquare().getX();
+                                    final int fromZ = land.getSquare().getZ();
+                                    p.sendMessage(chat(BungeeAPI.getPlayerRank(owner).getPrefix() + owner.getName() + "&a님의 땅 &b"+land.getName()+"&a의 중심을 &6" + fromX + ", " + fromZ + "&a에서 &6" + p.getLocation().getBlockX() + ", " + p.getLocation().getZ() + "&a으로 변경했습니다."));
+                                    TextComponent text = new TextComponent(chat("&7변경사항을 취소하시려면 &b&l여기&r&7를 클릭하세요."));
+                                    text.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/land restore " + p.getUniqueId() + " " + id + " " + fromX + " " + fromZ));
+                                    text.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(chat("&e클릭하여 복구하세요!"))));
+                                    p.spigot().sendMessage(text);
+                                    land.setCenterLocation(p.getLocation());
+                                } catch (NumberFormatException e) {
+                                    final List<PlayerLand> lands = DatabaseManager.init.searchPlayerLands(arg[1]);
+                                    if(lands.isEmpty()) {
+                                        p.sendMessage(chat("&c해당 이름 또는 닉네임을 포함한 땅을 찾을 수 없습니다."));
+                                        return true;
+                                    }
+                                    p.sendMessage(chat("&e==== &7아래 목록 중에서 이동할 땅을 선택하세요. &e===="));
+                                    TextComponent text;
+                                    OfflinePlayer owner;
+                                    for (PlayerLand land : lands) {
+                                        owner = Bukkit.getOfflinePlayer(land.getOwner());
+                                        text = new TextComponent(chat("&7• " + BungeeAPI.getPlayerRank(owner).getPrefix() + owner.getName() + "&7님의 땅 &b" + land.getName()));
+                                        text.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(chat(BungeeAPI.getPlayerRank(owner).getPrefix() + owner.getName() + "&7님의 땅 &b" + land.getName())), new Text(chat("&e클릭하여 선택하세요!"))));
+                                        text.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/land center ##" + land.getId()));
+                                        p.spigot().sendMessage(text);
+                                    }
+                                    p.sendMessage(chat("&e==== &7위 목록 중에서 이동할 땅을 선택하세요. &e===="));
+                                }
+                            } else {
+                                p.sendMessage(chat("&c플레이어 이름 또는 땅 이름을 입력하세요."));
+                            }
+                        }
+                    }
+                }
+                case "restore" -> {
+                    if (sender instanceof Player p) {
+                        if (sender.isOp()) {
+                            if(arg.length >= 5) {
+                                if(arg[1].equals(p.getUniqueId().toString())) {
+                                    int id = Integer.parseInt(arg[2]);
+                                    final int fromX = Integer.parseInt(arg[3]);
+                                    final int fromZ = Integer.parseInt(arg[4]);
+                                    final PlayerLand land = DatabaseManager.init.getPlayerLand(id);
+                                    if(land == null) {
+                                        p.sendMessage(chat("&c해당 id의 땅을 찾을 수 없습니다."));
+                                        return true;
+                                    }
+                                    final OfflinePlayer owner = Bukkit.getOfflinePlayer(land.getOwner());
+                                    p.sendMessage(chat(BungeeAPI.getPlayerRank(owner).getPrefix() + owner.getName() + "&a님의 땅 중심 변경을 취소했습니다."));
+                                    land.setCenterLocation(fromX, fromZ);
+                                }
+                            }
                         }
                     }
                 }
@@ -73,11 +144,19 @@ public class CmdLand implements ICommand {
 
     @Override
     public List<String> tabComplete(CommandSender sender, Command cmd, String[] arg) {
-        if(arg.length == 1) return sender.isOp() ? List.of("reload", "dupe", "home", "homes") : List.of("home", "homes");
-        else if(arg.length == 2 && sender.isOp()) return Arrays.stream(Bukkit.getOfflinePlayers())
-                .map(OfflinePlayer::getName).filter(Objects::nonNull)
-                .filter(o -> o.toLowerCase().startsWith(arg[1].toLowerCase()))
-                .toList();
+        if(arg.length == 1) return sender.isOp() ? List.of("reload", "dupe", "center", "home", "homes") : List.of("home", "homes");
+        else if(arg.length == 2 && sender.isOp()) {
+            final String s = arg[1].toLowerCase();
+            if(arg[0].equalsIgnoreCase("center")) {
+                return Stream.concat(Arrays.stream(Bukkit.getOfflinePlayers()).map(OfflinePlayer::getName), DatabaseManager.init.getPlayerLandNames().stream())
+                        .filter(o -> Objects.nonNull(o) && o.toLowerCase().startsWith(s))
+                        .toList();
+            }
+            return Arrays.stream(Bukkit.getOfflinePlayers())
+                    .map(OfflinePlayer::getName)
+                    .filter(o -> Objects.nonNull(o) && o.toLowerCase().startsWith(s))
+                    .toList();
+        }
         return Collections.emptyList();
     }
 }

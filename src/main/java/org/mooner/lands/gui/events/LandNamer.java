@@ -34,7 +34,8 @@ public record LandNamer(Player p, LandsData data) {
                     case OTHER_LAND -> p.sendMessage(DatabaseManager.init.getMessage("land-create-other-land"));
                     case NOT_FOUND -> p.sendMessage(DatabaseManager.init.getMessage("land-create-not-found"));
                     case NO_WORLD -> p.sendMessage(DatabaseManager.init.getMessage("land-no-world"));
-                    case DUPE_NAME -> p.sendMessage(DatabaseManager.init.getMessage("land-dupe-name"));
+                    case DUPE_NAME -> p.sendMessage(DatabaseManager.init.getMessage("land-dupe-name").replace("{1}", e.getMessage()));
+                    case NO_NAME -> p.sendMessage(DatabaseManager.init.getMessage("land-no-name"));
                     case NOT_ENOUGH_MONEY -> p.sendMessage(DatabaseManager.init.getMessage("land-not-enough-money"));
                     case COMPLETE -> p.sendMessage(DatabaseManager.init.getMessage("land-create-complete"));
                 }

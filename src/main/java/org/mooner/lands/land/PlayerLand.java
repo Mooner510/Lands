@@ -25,7 +25,7 @@ public class PlayerLand {
     private HashSet<UUID> coop;
 
     @Getter
-    private final Square square;
+    private Square square;
     @Getter
     private Location spawnLocation;
 
@@ -47,6 +47,15 @@ public class PlayerLand {
 
     public Square getCheckSquare() {
         return new Square(square.getX(), square.getZ(), square.getDistance() >= DatabaseManager.init.getMoreFindDistance() ? (square.getDistance() + 40) : square.getDistance());
+    }
+
+    public void setCenterLocation(int x, int z) {
+        this.square = new Square(x, z, this.square.getDistance());
+        DatabaseManager.init.setCenterLocation(id, x, z);
+    }
+
+    public void setCenterLocation(Location loc) {
+        setCenterLocation(loc.getBlockX(), loc.getBlockZ());
     }
 
     public void setSpawnLocation(Location loc) {

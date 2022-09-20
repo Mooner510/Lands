@@ -17,6 +17,7 @@ messages:
   land-no-world: "&2[ &f땅 &2] &c해당 월드에서는 구매할 수 없습니다."
   land-set-location: "&2[ &f땅 &2] &a현재 위치를 지역의 스폰 지점으로 설정했습니다."
   land-not-enough-money: "&2[ &f땅 &2] &c땅을 구매하기에 충분한 돈을 가지고 있지 않습니다!"
+  land-no-name: "&2[ &f땅 &2] &c땅 이름으로 설정할 수 없는 문자가 포함되어 있습니다."
   land-dupe-name: "&2[ &f땅 &2] &6{1}&c이라는 땅은 이미 존재합니다."
 maxLands: 4
 findDistance: 100
