@@ -8,6 +8,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.mooner.lands.Lands;
 import org.mooner.lands.command.ICommand;
+import org.mooner.lands.gui.gui.DupeLandsGUI;
 import org.mooner.lands.gui.gui.HomeGUI;
 import org.mooner.lands.gui.gui.MainGUI;
 import org.mooner.lands.land.db.DatabaseManager;
@@ -29,21 +30,20 @@ public class CmdLand implements ICommand {
     public boolean execute(CommandSender sender, Command cmd, String[] arg) {
         if(arg.length > 0) {
             switch (arg[0]) {
-                case "reload":
-                    if(sender.isOp()) {
+                case "reload" -> {
+                    if (sender.isOp()) {
                         DatabaseManager.init.update();
                         sender.sendMessage("Reload Complete");
                     }
-                    break;
-                case "home":
-                case "homes":
+                }
+                case "home", "homes" -> {
                     if (sender instanceof Player p) {
-                        if(sender.isOp()) {
+                        if (sender.isOp()) {
                             if (arg.length > 1) {
                                 final OfflinePlayer off = Arrays.stream(Bukkit.getOfflinePlayers())
                                         .filter(o -> o.getName() != null && o.getName().equalsIgnoreCase(arg[1]))
                                         .findFirst().orElse(null);
-                                if(off == null) {
+                                if (off == null) {
                                     p.sendMessage(ChatColor.RED + arg[1] + "님을 찾을 수 없습니다!");
                                     return true;
                                 }
@@ -55,7 +55,15 @@ public class CmdLand implements ICommand {
                         }
                         new HomeGUI(p, p);
                     }
-                    break;
+                }
+                case "dupe" -> {
+                    if (sender instanceof Player p) {
+                        if (sender.isOp()) {
+                            new DupeLandsGUI(p);
+                            return true;
+                        }
+                    }
+                }
             }
             return true;
         }

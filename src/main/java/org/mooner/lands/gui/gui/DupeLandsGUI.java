@@ -39,6 +39,7 @@ public class DupeLandsGUI {
             map = new HashMap<>();
             listMap = new HashMap<>();
             int index = 0;
+            player.sendMessage(chat("&7겹쳐지는 땅을 검색하는 중입니다..."));
             for (PlayerLand playerLand : DatabaseManager.init.getPlayerLands()) {
                 final List<PlayerLand> lands = DatabaseManager.init.getDupeLands(playerLand);
                 if(!lands.isEmpty()) {
@@ -60,6 +61,7 @@ public class DupeLandsGUI {
                     inventory.setItem(index++, GUIUtils.addLore(i, list, "", "&e클릭하여 세부 설정하세요!"));
                 }
             }
+            player.sendMessage(chat("&7모든 땅을 검색해 확인했습니다."));
 
             Bukkit.getScheduler().runTask(lands, () -> {
                 Bukkit.getPluginManager().registerEvents(listener, lands);
