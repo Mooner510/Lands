@@ -484,7 +484,7 @@ public class DatabaseManager {
     public List<PlayerLand> getDupeLands(PlayerLand l) {
         Square s = l.getSquare();
         return playerLands.stream()
-                .filter(land -> land.getCheckSquare().isIn(s))
+                .filter(land -> l.getId() != land.getId() && land.getCheckSquare().isIn(s))
                 .toList();
     }
 
