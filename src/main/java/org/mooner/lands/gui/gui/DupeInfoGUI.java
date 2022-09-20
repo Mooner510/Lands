@@ -2,6 +2,7 @@ package org.mooner.lands.gui.gui;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -10,6 +11,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
 import org.mooner.lands.land.PlayerLand;
+import org.mooner.moonerbungeeapi.api.BungeeAPI;
 
 import java.util.List;
 
@@ -27,11 +29,12 @@ public class DupeInfoGUI {
     public DupeInfoGUI(Player p, PlayerLand land, List<PlayerLand> list) {
         Bukkit.getScheduler().runTaskAsynchronously(lands, () -> {
             this.player = p;
-            this.inventory = Bukkit.createInventory(p, 54, Bukkit.getOfflinePlayer(land.getOwner()).getName() + "님의 땅: " + land.getName());
+            OfflinePlayer owner = Bukkit.getOfflinePlayer(land.getOwner());
+            this.inventory = Bukkit.createInventory(p, 54, owner.getName() + "님의 땅: " + land.getName());
             this.list = list;
             int distance = land.getSquare().getDistance();
             inventory.setItem(4, ench(createItem(Material.GRASS_BLOCK, 1, land.getName(),
-                    "&7소유자: " + Bukkit.getOfflinePlayer(land.getOwner()).getName(),
+                    "&7소유자: " + BungeeAPI.getPlayerRank(owner).getPrefix() + owner.getName(),
                     "&7공유 중인 플레이어: &b" + land.getCoopSize() + "명",
                     "&7지역 크기: &6" + distance * 2 + "x" + distance * 2,
                     "&7지역 위치: &ex: " + land.getSquare().getX() + ", z: " + land.getSquare().getZ(),
@@ -42,8 +45,9 @@ public class DupeInfoGUI {
             int index = 9;
             for (PlayerLand playerLand : list) {
                 distance = playerLand.getSquare().getDistance();
+                owner = Bukkit.getOfflinePlayer(playerLand.getOwner());
                 inventory.setItem(index++, ench(createItem(Material.OAK_FENCE, 1, playerLand.getName(),
-                        "&7소유자: " + Bukkit.getOfflinePlayer(playerLand.getOwner()).getName(),
+                        "&7소유자: " + BungeeAPI.getPlayerRank(owner).getPrefix() + owner.getName(),
                         "&7공유 중인 플레이어: &b" + playerLand.getCoopSize() + "명",
                         "&7지역 크기: &6" + distance * 2 + "x" + distance * 2,
                         "&7지역 위치: &ex: " + playerLand.getSquare().getX() + ", z: " + playerLand.getSquare().getZ(),

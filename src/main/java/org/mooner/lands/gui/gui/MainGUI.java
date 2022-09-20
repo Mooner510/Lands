@@ -2,6 +2,7 @@ package org.mooner.lands.gui.gui;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.Particle;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -16,6 +17,7 @@ import org.mooner.lands.land.PlayerLand;
 import org.mooner.lands.land.Square;
 import org.mooner.lands.land.db.DatabaseManager;
 import org.mooner.lands.land.db.data.LandsData;
+import org.mooner.moonerbungeeapi.api.BungeeAPI;
 
 import java.util.HashMap;
 
@@ -54,16 +56,40 @@ public class MainGUI {
                 inventory.setItem(9, pane);
                 inventory.setItem(17, pane);
                 int distance = land.getSquare().getDistance();
+                final OfflinePlayer owner = Bukkit.getOfflinePlayer(land.getOwner());
                 inventory.setItem(4, ench(createItem(Material.BOOK, 1, "&a지역 상세 정보 - " + land.getName(),
-                        "&7소유자: " + Bukkit.getOfflinePlayer(land.getOwner()).getName(),
+                        "&7소유자: " + BungeeAPI.getPlayerRank(owner).getPrefix() + owner.getName(),
                         "&7공유 중인 플레이어: &b" + land.getCoopSize() + "명",
-                        "&7지역 크기: &6" + distance * 2 + "x" + distance * 2
+                        "&7지역 크기: &6" + distance * 2 + "x" + distance * 2,
+                        "&7구매한 가격: &6" + land.getCost(),
+                        "&7지역 위치: &ex: " + land.getSquare().getX() + ", z: " + land.getSquare().getZ(),
+                        "&7스폰 지점 위치: &e" + land.getSpawnLocation().getBlockX() + ", " + land.getSpawnLocation().getBlockY() + ", " + land.getSpawnLocation().getBlockZ()
                 )));
-                inventory.setItem(8, createItem(Material.TNT, 1, "&c지역 삭제하기", "&7해당 지역을 삭제합니다.", "", "&7삭제시 구매한 가격의 &a20%&7를 돌려 받습니다.", "&7환불 가격: &6" + parseString(land.getCost() * 0.2, 1, true) + "원", "", "&c주의! 되돌릴 수 없습니다!"));
-                inventory.setItem(10, createItem(Material.PLAYER_HEAD, 1, "&b공유 플레이어 추가", "&7지역을 공유할 플레이어를 추가합니다.", "&7지역 설정 권한은 주어지지 않습니다.", "", "&7현재 공유 중: &b" + land.getCoopSize() + "명"));
-                inventory.setItem(12, createItem(Material.ENDER_PEARL, 1, "&d워프 장소 설정", "&7클릭해 현재 위치를 워프 장소로 설정합니다."));
-                inventory.setItem(14, createItem(Material.COMMAND_BLOCK, 1, "&e지역 상세 설정", "&7해당 지역에 대해 상세적으로 설정합니다."));
-                inventory.setItem(16, createItem(Material.EXPERIENCE_BOTTLE, 1, "&6경계선 보기", "&7지역의 경계선을 시각적으로 확인합니다."));
+                inventory.setItem(8, createItem(Material.TNT, 1, "&c지역 삭제하기",
+                        "&7해당 지역을 삭제합니다.",
+                        "",
+                        "&7삭제시 구매한 가격의 &a20%&7를 돌려 받습니다.",
+                        "&7환불 가격: &6" + parseString(land.getCost() * 0.2, 1, true) + "원",
+                        "",
+                        "&c주의! 되돌릴 수 없습니다!"
+                ));
+                inventory.setItem(10, createItem(Material.PLAYER_HEAD, 1, "&b공유 플레이어 추가",
+                        "&7지역을 공유할 플레이어를 추가합니다.",
+                        "&7지역 설정 권한은 주어지지 않습니다.",
+                        "",
+                        "&7현재 공유 중: &b" + land.getCoopSize() + "명"
+                ));
+                inventory.setItem(12, createItem(Material.ENDER_PEARL, 1, "&d워프 장소 설정",
+                        "&7현재 스폰 지점 위치: &e" + land.getSpawnLocation().getBlockX() + ", " + land.getSpawnLocation().getBlockY() + ", " + land.getSpawnLocation().getBlockZ(),
+                        "",
+                        "&7클릭해 현재 위치를 워프 장소로 설정합니다."
+                ));
+                inventory.setItem(14, createItem(Material.COMMAND_BLOCK, 1, "&e지역 상세 설정",
+                        "&7해당 지역에 대해 상세적으로 설정합니다."
+                ));
+                inventory.setItem(16, createItem(Material.EXPERIENCE_BOTTLE, 1, "&6경계선 보기",
+                        "&7지역의 경계선을 시각적으로 확인합니다."
+                ));
             }
 
             Bukkit.getScheduler().runTask(lands, () -> {

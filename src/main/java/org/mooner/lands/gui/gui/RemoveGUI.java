@@ -2,6 +2,7 @@ package org.mooner.lands.gui.gui;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -15,8 +16,7 @@ import org.mooner.moonereco.API.EcoAPI;
 import org.mooner.moonereco.API.LogType;
 
 import static org.mooner.lands.Lands.lands;
-import static org.mooner.lands.MoonerUtils.chat;
-import static org.mooner.lands.MoonerUtils.parseString;
+import static org.mooner.lands.MoonerUtils.*;
 import static org.mooner.lands.gui.GUIUtils.createItem;
 
 public class RemoveGUI {
@@ -60,6 +60,12 @@ public class RemoveGUI {
                     e.setCancelled(true);
                     if(e.getCurrentItem().getType() == Material.CLOCK) return;
                     if(e.getSlot() == 11 && e.getCurrentItem().getType() == Material.GREEN_TERRACOTTA) {
+                        if(e.getClick().isKeyboardClick()) {
+                            player.sendMessage(chat("&7구지.. 이걸 키보드로 누르셔야 됬나요?? 잘못하고 손이 미끄러져 클릭했을 수도 있으니 취소해 드릴게요."));
+                            playSound(player, Sound.ENTITY_VILLAGER_NO, 1, 1);
+                            player.closeInventory();
+                            return;
+                        }
                         player.sendMessage(DatabaseManager.init.getMessage("land-delete").replace("{1}", parseString(land.getCost() * 0.20, 2, true)));
                         DatabaseManager.init.deleteLand(land.getId());
                         EcoAPI.init.addPay(player, land.getCost() * 0.20);

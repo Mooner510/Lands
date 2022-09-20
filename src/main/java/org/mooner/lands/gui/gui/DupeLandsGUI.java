@@ -4,6 +4,7 @@ import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -15,6 +16,7 @@ import org.bukkit.inventory.ItemStack;
 import org.mooner.lands.gui.GUIUtils;
 import org.mooner.lands.land.PlayerLand;
 import org.mooner.lands.land.db.DatabaseManager;
+import org.mooner.moonerbungeeapi.api.BungeeAPI;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -56,8 +58,9 @@ public class DupeLandsGUI {
                         continue;
                     }
                     int distance = playerLand.getSquare().getDistance();
+                    final OfflinePlayer owner = Bukkit.getOfflinePlayer(playerLand.getOwner());
                     final ItemStack i = ench(createItem(Material.BOOK, 1, playerLand.getName(),
-                            "&7소유자: " + Bukkit.getOfflinePlayer(playerLand.getOwner()).getName(),
+                            "&7소유자: " + BungeeAPI.getPlayerRank(owner).getPrefix() + owner.getName(),
                             "&7공유 중인 플레이어: &b" + playerLand.getCoopSize() + "명",
                             "&7지역 크기: &6" + distance * 2 + "x" + distance * 2,
                             "&7지역 위치: &ex: " + playerLand.getSquare().getX() + ", z: " + playerLand.getSquare().getZ(),
