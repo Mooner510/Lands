@@ -12,10 +12,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.mooner.lands.MoonerUtils.chat;
@@ -99,38 +96,21 @@ public class GUIUtils {
         return i;
     }
 
-    public static ItemStack addLore(ItemStack i, String... lore) {
+    public static ItemStack addLore(ItemStack i, Object... lore) {
         ItemMeta meta = i.getItemMeta();
         ArrayList<String> l = new ArrayList<>();
 
         if(meta.getLore() != null && meta.getLore().size() > 0) l = new ArrayList<>(meta.getLore());
 
-        for (String s : lore) l.add(chat(s));
-        meta.setLore(l);
-        i.setItemMeta(meta);
-        return i;
-    }
-
-    public static ItemStack addLore(ItemStack i, Collection<String> lore) {
-        ItemMeta meta = i.getItemMeta();
-        ArrayList<String> l = new ArrayList<>();
-
-        if(meta.getLore() != null && meta.getLore().size() > 0) l = new ArrayList<>(meta.getLore());
-
-        for (String s : lore) l.add(chat(s));
-        meta.setLore(l);
-        i.setItemMeta(meta);
-        return i;
-    }
-
-    public static ItemStack addLore(ItemStack i, Collection<String> lore, String... add) {
-        ItemMeta meta = i.getItemMeta();
-        ArrayList<String> l = new ArrayList<>();
-
-        if(meta.getLore() != null && meta.getLore().size() > 0) l = new ArrayList<>(meta.getLore());
-
-        for (String s : lore) l.add(chat(s));
-        for (String s : add) l.add(chat(s));
+        for (Object d : lore) {
+            if(d instanceof String s) {
+                l.add(chat(s));
+            } else if(d instanceof Collection<?> c) {
+                for (Object o : c) {
+                    if(o instanceof String s) l.add(chat(s));
+                }
+            }
+        }
         meta.setLore(l);
         i.setItemMeta(meta);
         return i;

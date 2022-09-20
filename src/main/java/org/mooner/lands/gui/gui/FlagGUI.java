@@ -95,7 +95,6 @@ public class FlagGUI {
                         lastClick = getTime();
                         LandFlags flags = LandFlags.values()[e.getSlot() - 9 + (page - 1) * 27];
                         LandFlags.LandFlagSetting flag = DatabaseManager.init.getLandManager(id).nextFlagRequest(flags);
-                        lands.getLogger().info(flag.toString());
                         updateSlot(e.getSlot(), flags, flag);
                         player.updateInventory();
                         playSound(player, Sound.UI_BUTTON_CLICK, 0.85, 1);

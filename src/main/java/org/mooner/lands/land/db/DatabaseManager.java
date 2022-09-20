@@ -18,6 +18,7 @@ import javax.annotation.Nullable;
 import java.io.*;
 import java.sql.*;
 import java.util.*;
+import java.util.logging.Level;
 
 import static org.mooner.lands.Lands.dataPath;
 import static org.mooner.lands.Lands.lands;
@@ -250,7 +251,8 @@ public class DatabaseManager {
         return worlds.contains(w.getName());
     }
 
-    public LandState setLand(UUID uuid, String name, Location location, LandsData data) {
+    public LandState setLand(UUID uuid, String name, Location loc, LandsData data) {
+        final Location location = loc.clone();
         final OfflinePlayer offline = Bukkit.getOfflinePlayer(uuid);
         if(!EcoAPI.init.hasPay(offline, data.getCost())) return LandState.NOT_ENOUGH_MONEY;
         if(!notContainsWorld(location.getWorld())) return LandState.NO_WORLD;
@@ -291,16 +293,15 @@ public class DatabaseManager {
         return LandState.COMPLETE;
     }
 
-    public void setSpawnLocation(int land, Location loc) {
+    public void setSpawnLocation(int land, Location location) {
+        Location loc = location.clone();
         Bukkit.getScheduler().runTaskAsynchronously(lands, () -> {
             try (
                     Connection c = DriverManager.getConnection(DatabaseManager.CONNECTION);
-                    PreparedStatement s2 = c.prepareStatement("UPDATE Lands SET x=?, z=?, world=? where id=?")
+                    PreparedStatement s2 = c.prepareStatement("UPDATE Lands SET spawn=? where id=?")
             ) {
-                s2.setInt(1, loc.getBlockX());
-                s2.setInt(2, loc.getBlockZ());
-                s2.setString(3, loc.getWorld().getName());
-                s2.setInt(4, land);
+                s2.setString(1, loc.getX()+":"+loc.getY()+":"+loc.getZ()+":"+loc.getYaw()+":"+loc.getPitch());
+                s2.setInt(2, land);
                 s2.executeUpdate();
             } catch (SQLException e) {
                 if (e.getErrorCode() == 5 || e.getErrorCode() == 6)
@@ -480,6 +481,12 @@ public class DatabaseManager {
         return playerLands.stream()
                 .noneMatch(land -> land.getOwner().equals(uuid) ? land.getSquare().isIn(s) : land.getCheckSquare().isIn(s));
     }
+    public List<PlayerLand> getDupeLands(PlayerLand l) {
+        Square s = l.getSquare();
+        return playerLands.stream()
+                .filter(land -> land.getCheckSquare().isIn(s))
+                .toList();
+    }
 
     public boolean isSafe(Location location) {
         return playerLands.stream()
@@ -552,5 +559,9 @@ public class DatabaseManager {
                 .filter(land -> land.getOwner().equals(uuid))
                 .sorted(Comparator.comparing(PlayerLand::getName))
                 .toList();
+    }
+
+    public Set<PlayerLand> getPlayerLands() {
+        return playerLands;
     }
 }
