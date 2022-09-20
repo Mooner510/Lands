@@ -1,5 +1,7 @@
 package org.mooner.lands.gui.gui;
 
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -17,6 +19,7 @@ import org.mooner.lands.land.db.DatabaseManager;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 import static org.mooner.lands.Lands.lands;
 import static org.mooner.lands.MoonerUtils.chat;
@@ -40,9 +43,18 @@ public class DupeLandsGUI {
             listMap = new HashMap<>();
             int index = 0;
             player.sendMessage(chat("&7겹쳐지는 땅을 검색하는 중입니다..."));
-            for (PlayerLand playerLand : DatabaseManager.init.getPlayerLands()) {
+            final Set<PlayerLand> playerLands = DatabaseManager.init.getPlayerLands();
+            final int size = playerLands.size();
+            int length = 1;
+            int outIndex = 0;
+            for (PlayerLand playerLand : playerLands) {
                 final List<PlayerLand> lands = DatabaseManager.init.getDupeLands(playerLand);
+                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(chat("&7검색중... &e(" + (length++) + "/" + size + ")")));
                 if(!lands.isEmpty()) {
+                    if(index >= 54) {
+                        outIndex++;
+                        continue;
+                    }
                     int distance = playerLand.getSquare().getDistance();
                     final ItemStack i = ench(createItem(Material.BOOK, 1, playerLand.getName(),
                             "&7소유자: " + Bukkit.getOfflinePlayer(playerLand.getOwner()).getName(),
@@ -61,7 +73,10 @@ public class DupeLandsGUI {
                     inventory.setItem(index++, GUIUtils.addLore(i, list, "", "&e클릭하여 세부 설정하세요!"));
                 }
             }
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(chat("&a완료")));
             player.sendMessage(chat("&7모든 땅을 검색해 확인했습니다."));
+            if(outIndex > 0)
+                player.sendMessage(chat("&6" + outIndex + "&c개의 땅이 누락되었습니다."));
 
             Bukkit.getScheduler().runTask(lands, () -> {
                 Bukkit.getPluginManager().registerEvents(listener, lands);

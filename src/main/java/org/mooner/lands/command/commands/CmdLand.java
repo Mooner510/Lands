@@ -73,7 +73,7 @@ public class CmdLand implements ICommand {
 
     @Override
     public List<String> tabComplete(CommandSender sender, Command cmd, String[] arg) {
-        if(arg.length == 1) return sender.isOp() ? List.of("reload", "home", "homes") : List.of("home", "homes");
+        if(arg.length == 1) return sender.isOp() ? List.of("reload", "dupe", "home", "homes") : List.of("home", "homes");
         else if(arg.length == 2 && sender.isOp()) return Arrays.stream(Bukkit.getOfflinePlayers())
                 .map(OfflinePlayer::getName).filter(Objects::nonNull)
                 .filter(o -> o.toLowerCase().startsWith(arg[1].toLowerCase()))
