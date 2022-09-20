@@ -102,7 +102,7 @@ public class CmdLand implements ICommand {
                                     for (PlayerLand land : lands) {
                                         owner = Bukkit.getOfflinePlayer(land.getOwner());
                                         text = new TextComponent(chat("&7• " + BungeeAPI.getPlayerRank(owner).getPrefix() + owner.getName() + "&7님의 땅 &b" + land.getName()));
-                                        text.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(chat(BungeeAPI.getPlayerRank(owner).getPrefix() + owner.getName() + "&7님의 땅 &b" + land.getName())), new Text(chat("&e클릭하여 선택하세요!"))));
+                                        text.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(chat(BungeeAPI.getPlayerRank(owner).getPrefix() + owner.getName() + "&7님의 땅 &b" + land.getName() + "\n&e클릭하여 선택하세요!"))));
                                         text.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/land center ##" + land.getId()));
                                         p.spigot().sendMessage(text);
                                     }
