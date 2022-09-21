@@ -24,10 +24,13 @@ public class DupeInfoGUI {
     private Player player;
     private final Click listener = new Click();
 
+    private PlayerLand land;
+
     private List<PlayerLand> list;
 
     public DupeInfoGUI(Player p, PlayerLand land, List<PlayerLand> list) {
         Bukkit.getScheduler().runTaskAsynchronously(lands, () -> {
+            this.land = land;
             this.player = p;
             OfflinePlayer owner = Bukkit.getOfflinePlayer(land.getOwner());
             this.inventory = Bukkit.createInventory(p, 54, owner.getName() + "님의 땅: " + land.getName());
@@ -74,7 +77,9 @@ public class DupeInfoGUI {
                     e.setCancelled(true);
                     final Player p = player;
                     p.closeInventory();
-                    p.teleport(list.get(e.getSlot() - 9).getSpawnLocation());
+                    if(e.getSlot() >= 9)
+                        p.teleport(list.get(e.getSlot() - 9).getSpawnLocation());
+                    else p.teleport(land.getSpawnLocation());
                 }
             }
         }
