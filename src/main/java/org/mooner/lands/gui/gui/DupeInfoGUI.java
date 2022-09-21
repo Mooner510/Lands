@@ -74,7 +74,7 @@ public class DupeInfoGUI {
                     e.setCancelled(true);
                     final Player p = player;
                     p.closeInventory();
-                    p.teleport(list.get(e.getSlot()).getSpawnLocation());
+                    p.teleport(list.get(e.getSlot() - 9).getSpawnLocation());
                 }
             }
         }
