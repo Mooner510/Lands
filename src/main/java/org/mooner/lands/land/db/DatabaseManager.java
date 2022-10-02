@@ -5,8 +5,8 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.mooner.lands.Lands;
-import org.mooner.lands.land.LandManager;
 import org.mooner.lands.land.LandFlags;
+import org.mooner.lands.land.LandManager;
 import org.mooner.lands.land.PlayerLand;
 import org.mooner.lands.land.Square;
 import org.mooner.lands.land.db.data.FlagData;
@@ -18,7 +18,6 @@ import javax.annotation.Nullable;
 import java.io.*;
 import java.sql.*;
 import java.util.*;
-import java.util.logging.Level;
 
 import static org.mooner.lands.Lands.dataPath;
 import static org.mooner.lands.Lands.lands;
