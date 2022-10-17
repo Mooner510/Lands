@@ -477,6 +477,7 @@ public class DatabaseManager {
     public void deleteLand(int land) {
         playerLands.removeIf(l -> l.getId() == land);
         landManagerMap.remove(land).unregister();
+        deleteLandFromDB(land);
     }
 
     private void deleteLandFromDB(int land) {
