@@ -86,9 +86,13 @@ public class RemoveGUI {
                             EcoAPI.init.log(player, LogType.LAND_SELL, land.getCost() / 5, land.getId());
                         } else {
                             EcoAPI.init.log(player, LogType.LAND_SELL, -1, land.getId());
-                            player.sendMessage("", chat("&c아직도 Land 오류로 인해 제한된 수량보다 더 많은 땅을 소유하고 있습니다."), "");
-                            new FixGUI(player);
-                            return;
+                            if(DatabaseManager.init.getPlayerLands(player.getUniqueId()).size() > DatabaseManager.maxLands) {
+                                player.sendMessage("", chat("&c아직도 Land 오류로 인해 제한된 수량보다 더 많은 땅을 소유하고 있습니다."), "");
+                                new FixGUI(player);
+                                return;
+                            } else {
+                                player.sendMessage("", chat("&a제한된 수량으로 성공적으로 땅을 삭제했습니다. 이제 다시 &6/land &a기능을 사용하실 수 있습니다."), "");
+                            }
                         }
                     }
                     player.closeInventory();
