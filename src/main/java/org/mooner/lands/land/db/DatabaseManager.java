@@ -28,7 +28,7 @@ public class DatabaseManager {
     public static DatabaseManager init;
     private static final String CONNECTION = "jdbc:sqlite:" + dataPath + "DB/lands.db";
 //    private int maxSize;
-    private int maxLands;
+    public static int maxLands;
     private int moreFindDistance;
 
     private Map<String, String> message;
@@ -76,6 +76,7 @@ public class DatabaseManager {
                                 "spawn TEXT NOT NULL," +
                                 "size INTEGER NOT NULL," +
                                 "cost REAL NOT NULL," +
+                                "deleted INTEGER NOT NULL," +
                                 "PRIMARY KEY(id AUTOINCREMENT)" +
                                 ")")
         ) {
@@ -123,7 +124,7 @@ public class DatabaseManager {
         playerLands = new HashSet<>();
         try(
                 Connection c = DriverManager.getConnection(CONNECTION);
-                ResultSet r = c.prepareStatement("SELECT * FROM Lands").executeQuery()
+                ResultSet r = c.prepareStatement("SELECT * FROM Lands WHERE deleted == false").executeQuery()
         ) {
             while(r.next()) {
                 String[] spawns = r.getString("spawn").split(":");
@@ -485,7 +486,7 @@ public class DatabaseManager {
             try (
                     Connection c = DriverManager.getConnection(DatabaseManager.CONNECTION);
                     PreparedStatement s = c.prepareStatement("DELETE From Flags where land=?");
-                    PreparedStatement s2 = c.prepareStatement("DELETE From Lands where id=?")
+                    PreparedStatement s2 = c.prepareStatement("UPDATE Lands SET deleted=true where id=?")
             ) {
                 s.setInt(1, land);
                 s.execute();
@@ -558,6 +559,7 @@ public class DatabaseManager {
         return null;
     }
 
+    @Nullable
     public PlayerLand getPlayerLand(UUID uuid, String name) {
         return playerLands.stream()
                 .filter(land -> land.getOwner().equals(uuid) && land.getName().equals(name))
@@ -565,12 +567,11 @@ public class DatabaseManager {
                 .orElse(null);
     }
 
-    @Nullable
     public PlayerLand getPlayerLand(int id) {
         return playerLands.stream()
                 .filter(land -> land.getId() == id)
                 .findFirst()
-                .orElse(null);
+                .orElseThrow(() -> new NullPointerException("Cannot found playerLand with id " + id));
     }
 
     public boolean checkPlayerLandsWithName(UUID uuid, String name) {

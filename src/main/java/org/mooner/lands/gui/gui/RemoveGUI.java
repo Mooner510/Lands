@@ -22,10 +22,12 @@ import static org.mooner.lands.gui.GUIUtils.createItem;
 public class RemoveGUI {
     private Inventory inventory;
     private Player player;
+    private final boolean pay;
     private final Click listener = new Click();
     private PlayerLand land;
 
-    public RemoveGUI(Player p, PlayerLand land) {
+    public RemoveGUI(Player p, PlayerLand land, boolean pay) {
+        this.pay = pay;
         Bukkit.getScheduler().runTaskAsynchronously(lands, () -> {
             this.player = p;
             this.land = land;
@@ -33,13 +35,23 @@ public class RemoveGUI {
             for (int i = 0; i < 5; i++) {
                 int finalI = i;
                 Bukkit.getScheduler().runTaskLater(lands, () -> {
-                    if(inventory != null)
-                        inventory.setItem(11, createItem(Material.CLOCK, 5 - finalI, "&a삭제 &7(" + (5 - finalI) + ")", "", "&c주의! 되돌릴 수 없습니다!"));
+                    if(inventory != null) {
+                        if(pay) {
+                            inventory.setItem(11, createItem(Material.CLOCK, 5 - finalI, "&a삭제 &7(" + (5 - finalI) + ")", "", "&c주의! 되돌릴 수 없습니다!"));
+                        } else {
+                            inventory.setItem(11, createItem(Material.CLOCK, 5 - finalI, "&a삭제 &7(" + (5 - finalI) + ")", "", "&c&l정말로 다시 꼼꼼히 확인해주세요! 돈을 전혀 돌려받지 못합니다!", "", "&c주의! 되돌릴 수 없습니다!"));
+                        }
+                    }
                 }, i * 20);
             }
             Bukkit.getScheduler().runTaskLater(lands, () -> {
-                if(inventory != null)
-                    inventory.setItem(11, createItem(Material.GREEN_TERRACOTTA, 1, "&a삭제", "", "&c주의! 되돌릴 수 없습니다!"));
+                if(inventory != null) {
+                    if(pay) {
+                        inventory.setItem(11, createItem(Material.GREEN_TERRACOTTA, 1, "&a삭제", "", "&c주의! 되돌릴 수 없습니다!"));
+                    } else {
+                        inventory.setItem(11, createItem(Material.GREEN_TERRACOTTA, 1, "&a삭제", "", "&c&l정말로 다시 꼼꼼히 확인해주세요! 돈을 전혀 돌려받지 못합니다!", "", "&c주의! 되돌릴 수 없습니다!"));
+                    }
+                }
             }, 100);
             inventory.setItem(15, createItem(Material.RED_TERRACOTTA, 1, "&c취소"));
 
@@ -66,10 +78,18 @@ public class RemoveGUI {
                             player.closeInventory();
                             return;
                         }
+                        playSound(player, Sound.ENTITY_ZOMBIE_INFECT, 1, 0.5);
                         player.sendMessage(DatabaseManager.init.getMessage("land-delete").replace("{1}", parseString(land.getCost() * 0.20, 2, true)));
                         DatabaseManager.init.deleteLand(land.getId());
-                        EcoAPI.init.addPay(player, land.getCost() * 0.20);
-                        EcoAPI.init.log(player, LogType.LAND_SELL, land.getCost() * 0.20);
+                        if(pay) {
+                            EcoAPI.init.addPay(player, land.getCost() / 5);
+                            EcoAPI.init.log(player, LogType.LAND_SELL, land.getCost() / 5, land.getId());
+                        } else {
+                            EcoAPI.init.log(player, LogType.LAND_SELL, -1, land.getId());
+                            player.sendMessage("", chat("&c아직도 Land 오류로 인해 제한된 수량보다 더 많은 땅을 소유하고 있습니다."), "");
+                            new FixGUI(player);
+                            return;
+                        }
                     }
                     player.closeInventory();
                 }

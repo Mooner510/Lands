@@ -13,6 +13,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.mooner.lands.command.ICommand;
 import org.mooner.lands.gui.gui.DupeLandsGUI;
+import org.mooner.lands.gui.gui.FixGUI;
 import org.mooner.lands.gui.gui.HomeGUI;
 import org.mooner.lands.gui.gui.MainGUI;
 import org.mooner.lands.land.PlayerLand;
@@ -36,11 +37,24 @@ public class CmdLand implements ICommand {
     @Override
     public boolean execute(CommandSender sender, Command cmd, String[] arg) {
         if(arg.length > 0) {
+            boolean max = DatabaseManager.init.getPlayerLands().size() > DatabaseManager.maxLands;
+            if (max) {
+                sender.sendMessage("", chat("&cLand 오류로 인해 제한된 수량보다 더 많은 땅을 소유하고 있습니다."));
+                TextComponent text = new TextComponent(chat("&b여기&c를 클릭해 땅을 일부 땅을 제거하세요."));
+                text.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/land fix"));
+                sender.spigot().sendMessage(text);
+                sender.sendMessage("");
+            }
             switch (arg[0]) {
                 case "reload" -> {
                     if (sender.isOp()) {
                         DatabaseManager.init.update();
                         sender.sendMessage("Reload Complete");
+                    }
+                }
+                case "fix" -> {
+                    if (sender instanceof Player p) {
+                        if(max) new FixGUI(p);
                     }
                 }
                 case "home", "homes" -> {

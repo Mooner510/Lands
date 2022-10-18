@@ -115,7 +115,7 @@ public class MainGUI {
                         }
                     } else {
                         if(e.getSlot() == 8) {
-                            new RemoveGUI(player, land);
+                            new RemoveGUI(player, land, true);
                         } else if (e.getSlot() == 10) {
                             new PlayerGUI(player, land);
                         } else if (e.getSlot() == 12) {
