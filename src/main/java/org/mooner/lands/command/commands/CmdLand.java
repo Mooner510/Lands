@@ -39,13 +39,15 @@ public class CmdLand implements ICommand {
         boolean max = false;
         if (sender instanceof Player p) {
             max = DatabaseManager.init.getPlayerLands(p.getUniqueId()).size() > DatabaseManager.maxLands;
-            if (max) {
-                sender.sendMessage("", chat("   &cLand 오류로 인해 제한된 수량보다 더 많은 땅을 소유하고 있습니다."));
-                TextComponent text = new TextComponent(chat("   &b여기&c를 클릭해 땅을 일부 땅을 제거하세요."));
-                text.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/land fix"));
-                sender.spigot().sendMessage(text);
-                sender.sendMessage("");
-                return true;
+            if(!(arg.length > 0 && arg[0].equalsIgnoreCase("fix"))) {
+                if (max) {
+                    sender.sendMessage("", chat("   &cLand 오류로 인해 제한된 수량보다 더 많은 땅을 소유하고 있습니다."));
+                    TextComponent text = new TextComponent(chat("   &b여기&c를 클릭해 땅을 일부 땅을 제거하세요."));
+                    text.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/land fix"));
+                    sender.spigot().sendMessage(text);
+                    sender.sendMessage("");
+                    return true;
+                }
             }
         }
         if(arg.length > 0) {
