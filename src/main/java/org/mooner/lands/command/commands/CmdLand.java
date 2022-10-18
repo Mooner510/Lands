@@ -3,6 +3,7 @@ package org.mooner.lands.command.commands;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.chat.hover.content.Content;
 import net.md_5.bungee.api.chat.hover.content.Text;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -42,9 +43,10 @@ public class CmdLand implements ICommand {
             if(!(arg.length > 0 && (arg[0].equalsIgnoreCase("fix") || arg[0].equalsIgnoreCase("home") || arg[0].equalsIgnoreCase("homes")))) {
                 if (max) {
                     sender.sendMessage("", chat("   &cLand 오류로 인해 제한된 수량보다 더 많은 땅을 소유하고 있습니다."));
-                    sender.sendMessage("", chat("   &c먼저 &6/land home&c으로 소유한 땅을 확인하신 후, 아래를 눌러 땅을 제거해 주세요."));
+                    sender.sendMessage(chat("   &c먼저 &6/land home&c으로 소유한 땅을 확인하신 후, 땅을 제거해 주세요."));
                     TextComponent text = new TextComponent(chat("   &b여기&c를 클릭해 땅을 제거하세요."));
                     text.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/land fix"));
+                    text.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("클릭해 땅을 제거하세요.")));
                     sender.spigot().sendMessage(text);
                     sender.sendMessage("");
                     return true;
