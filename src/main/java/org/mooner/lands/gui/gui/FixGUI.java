@@ -81,7 +81,7 @@ public class FixGUI {
                     PlayerLand data = dataMap.get(e.getSlot());
                     if(dataMap != null) {
                         if (data != null) {
-                            new RemoveGUI(player, data, true);
+                            new RemoveGUI(player, data, false);
                         }
                     }
                 }
