@@ -79,12 +79,13 @@ public class RemoveGUI {
                             return;
                         }
                         playSound(player, Sound.ENTITY_ZOMBIE_INFECT, 1, 0.5);
-                        player.sendMessage(DatabaseManager.init.getMessage("land-delete").replace("{1}", parseString(land.getCost() * 0.20, 2, true)));
                         DatabaseManager.init.deleteLand(land.getId());
                         if(pay) {
+                            player.sendMessage(DatabaseManager.init.getMessage("land-delete").replace("{1}", parseString(land.getCost() * 0.20, 2, true)));
                             EcoAPI.init.addPay(player, land.getCost() / 5);
                             EcoAPI.init.log(player, LogType.LAND_SELL, land.getCost() / 5, land.getId());
                         } else {
+                            player.sendMessage(chat("&2[ &f땅 &2] &e해당 땅을 삭제했습니다."));
                             EcoAPI.init.log(player, LogType.LAND_SELL, -1, land.getId());
                             if(DatabaseManager.init.getPlayerLands(player.getUniqueId()).size() > DatabaseManager.maxLands) {
                                 player.sendMessage("", chat("&c아직도 Land 오류로 인해 제한된 수량보다 더 많은 땅을 소유하고 있습니다."), "");
