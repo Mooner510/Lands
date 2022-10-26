@@ -16,11 +16,14 @@ import org.bukkit.event.player.*;
 import org.bukkit.event.weather.LightningStrikeEvent;
 import org.bukkit.event.world.StructureGrowEvent;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.mooner.lands.exception.PlayerLandNotFoundException;
 import org.mooner.lands.land.LandFlags;
 import org.mooner.lands.land.Square;
 import org.mooner.lands.land.db.DatabaseManager;
 
 import java.util.UUID;
+
+import static org.mooner.lands.MoonerUtils.saveThrowable;
 
 public class LandListener implements Listener {
     private final int land;
@@ -28,7 +31,7 @@ public class LandListener implements Listener {
     private final UUID owner;
     private final Square square;
 
-    public LandListener(int land, UUID world, Square s) {
+    public LandListener(int land, UUID world, Square s) throws PlayerLandNotFoundException {
         this.square = s;
         this.uuid = world;
         this.land = land;
@@ -44,7 +47,12 @@ public class LandListener implements Listener {
         LandFlags.LandFlagSetting s;
         if((s = DatabaseManager.init.getFlag(land, flag)) == LandFlags.LandFlagSetting.ALLOW) return true;
         if(s == LandFlags.LandFlagSetting.ONLY_COOP) {
-            return p.getUniqueId().equals(owner) || DatabaseManager.init.getPlayerLand(land).isCoop(p);
+            try {
+                return p.getUniqueId().equals(owner) || DatabaseManager.init.getPlayerLand(land).isCoop(p);
+            } catch (PlayerLandNotFoundException e) {
+                saveThrowable("ERROR", e);
+                throw new RuntimeException(e);
+            }
         }
         return false;
     }

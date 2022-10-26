@@ -8,11 +8,13 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.mooner.lands.events.CancelRequestEvent;
+import org.mooner.lands.exception.PlayerLandNotFoundException;
 import org.mooner.lands.gui.gui.PlayerGUI;
 import org.mooner.lands.land.db.DatabaseManager;
 
 import static org.mooner.lands.Lands.lands;
 import static org.mooner.lands.MoonerUtils.playSound;
+import static org.mooner.lands.MoonerUtils.saveThrowable;
 
 public record LandPlayerAdder(Player p, int land) {
     public LandPlayerAdder(Player p, int land) {
@@ -38,7 +40,12 @@ public record LandPlayerAdder(Player p, int land) {
                     case COMPLETE -> p.sendMessage(DatabaseManager.init.getMessage("land-coop-add"));
                 }
                 playSound(p, Sound.BLOCK_NOTE_BLOCK_PLING, 0.85, 1);
-                new PlayerGUI(p, DatabaseManager.init.getPlayerLand(land));
+                try {
+                    new PlayerGUI(p, DatabaseManager.init.getPlayerLand(land));
+                } catch (PlayerLandNotFoundException ex) {
+                    saveThrowable("ERROR", ex);
+                    throw new RuntimeException(ex);
+                }
             });
             HandlerList.unregisterAll(this);
         }

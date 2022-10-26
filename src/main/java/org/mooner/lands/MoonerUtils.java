@@ -24,10 +24,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import java.util.Random;
+import java.util.*;
 
 import static org.mooner.lands.Lands.lands;
 
@@ -53,11 +50,8 @@ public class MoonerUtils {
 
     /**
      * {@code 0.5} = 0.5%
-     *
      * {@code 1} = 1%
-     *
      * {@code 22} = 22%
-     *
      * {@code 100} = 100%
     **/
     public static boolean chance(double chance) {
@@ -254,6 +248,7 @@ public class MoonerUtils {
         }
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     public static FileConfiguration loadConfig(String Path, String File) {
         File f = new File(Path, File);
         if(!f.exists()) {
@@ -518,6 +513,7 @@ public class MoonerUtils {
      * @param location Location to check
      * @return True if location is safe
      */
+    @SuppressWarnings("deprecation")
     public static boolean isSafeLocation(Location location) {
         Block feet = location.getBlock();
         if (!feet.getType().isTransparent() && !feet.getLocation().add(0, 1, 0).getBlock().getType().isTransparent()) {
@@ -607,5 +603,33 @@ public class MoonerUtils {
             lands.getLogger().warning("Unable to decode class type. "+ e);
         }
         return null;
+    }
+
+    public static void saveThrowable(String name, Throwable throwable, Object... objects) {
+        saveThrowable(Lands.dataPath + "error/", name, throwable, objects);
+    }
+
+
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    public static void saveThrowable(String path, String name, Throwable throwable, Object... objects) {
+        new File(path).mkdirs();
+        File f = new File(path, name + '-' + UUID.randomUUID());
+        try {
+            f.createNewFile();
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+        try(
+                FileWriter fileWriter = new FileWriter(f);
+                PrintWriter writer = new PrintWriter(fileWriter)
+        ) {
+            for (Object o : objects) writer.println(o);
+            writer.println("[ Error ] " + throwable.getMessage());
+            writer.println("[ Error - Localized ] " + throwable.getLocalizedMessage());
+            writer.println();
+            for (StackTraceElement element : throwable.getStackTrace()) writer.println(element.toString());
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 }

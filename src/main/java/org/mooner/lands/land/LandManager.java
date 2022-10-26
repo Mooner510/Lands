@@ -4,6 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.event.HandlerList;
 import org.mooner.lands.Lands;
+import org.mooner.lands.exception.PlayerLandNotFoundException;
 import org.mooner.lands.land.db.DatabaseManager;
 import org.mooner.lands.land.db.data.FlagData;
 import org.mooner.lands.land.listener.LandListener;
@@ -21,7 +22,7 @@ public class LandManager {
     private HashMap<LandFlags, LandFlags.LandFlagSetting> requests;
     private LandListener listener;
 
-    public LandManager(PlayerLand land, List<FlagData> data) {
+    public LandManager(PlayerLand land, List<FlagData> data) throws PlayerLandNotFoundException {
         this.landId = land.getId();
         this.world = land.getSpawnLocation().getWorld().getUID();
         flagMap = new HashMap<>();
@@ -35,13 +36,13 @@ public class LandManager {
         register();
     }
 
-    public void update(Location loc) {
+    public void update(Location loc) throws PlayerLandNotFoundException {
         if(listener != null) unregisterEvent();
         square = new Square(loc.getBlockX(), loc.getBlockZ(), square.getDistance());
         Bukkit.getPluginManager().registerEvents(listener = new LandListener(landId, world, square), Lands.lands);
     }
 
-    public void register() {
+    public void register() throws PlayerLandNotFoundException {
         if(listener != null) unregisterEvent();
         Bukkit.getPluginManager().registerEvents(listener = new LandListener(landId, world, square), Lands.lands);
     }

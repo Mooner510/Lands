@@ -5,6 +5,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.mooner.lands.Lands;
+import org.mooner.lands.exception.PlayerLandNotFoundException;
 import org.mooner.lands.land.LandFlags;
 import org.mooner.lands.land.LandManager;
 import org.mooner.lands.land.PlayerLand;
@@ -21,9 +22,9 @@ import java.util.*;
 
 import static org.mooner.lands.Lands.dataPath;
 import static org.mooner.lands.Lands.lands;
-import static org.mooner.lands.MoonerUtils.chat;
-import static org.mooner.lands.MoonerUtils.loadConfig;
+import static org.mooner.lands.MoonerUtils.*;
 
+@SuppressWarnings("ResultOfMethodCallIgnored")
 public class DatabaseManager {
     public static DatabaseManager init;
     private static final String CONNECTION = "jdbc:sqlite:" + dataPath + "DB/lands.db";
@@ -141,7 +142,11 @@ public class DatabaseManager {
                         r.getDouble("cost")
                 );
                 playerLands.add(land);
-                landManagerMap.put(id, new LandManager(land, flags.get(id)));
+                try {
+                    landManagerMap.put(id, new LandManager(land, flags.get(id)));
+                } catch (PlayerLandNotFoundException e) {
+                    saveThrowable("ERROR", e, land);
+                }
 //                maxSize = Math.max(maxSize, r.getInt("size"));
             }
             Lands.lands.getLogger().info("성공적으로 플레이어의 Land를 불러왔습니다.");
@@ -289,7 +294,11 @@ public class DatabaseManager {
             PlayerLand land = getPlayerLandInDB(uuid, name);
             Bukkit.getScheduler().runTaskLater(Lands.lands, () -> land.getSquare().getOutline(arr -> new Location(w, arr[0] + x, w.getHighestBlockYAt(arr[0] + x, arr[1] + z) + 1, arr[1] + z).getBlock().setType(Material.OAK_FENCE)), 20L);
             playerLands.add(land);
-            landManagerMap.put(land.getId(), new LandManager(land, null));
+            try {
+                landManagerMap.put(land.getId(), new LandManager(land, null));
+            } catch (PlayerLandNotFoundException e) {
+                saveThrowable("ERROR", e, land);
+            }
         });
         return LandState.COMPLETE;
     }
@@ -335,7 +344,13 @@ public class DatabaseManager {
     }
 
     public LandCoopState addCoop(int land, String name) {
-        PlayerLand l = getPlayerLand(land);
+        PlayerLand l;
+        try {
+            l = getPlayerLand(land);
+        } catch (PlayerLandNotFoundException e) {
+            saveThrowable("ERROR", e);
+            throw new RuntimeException(e);
+        }
         if(l == null) return LandCoopState.NOT_FOUND_LAND;
         final LandCoopState state = l.addCoop(name);
         if (state != LandCoopState.COMPLETE) return state;
@@ -353,7 +368,13 @@ public class DatabaseManager {
     }
 
     public LandCoopState addCoop(int land, UUID uuid) {
-        PlayerLand l = getPlayerLand(land);
+        PlayerLand l;
+        try {
+            l = getPlayerLand(land);
+        } catch (PlayerLandNotFoundException e) {
+            saveThrowable("ERROR", e);
+            throw new RuntimeException(e);
+        }
         if(l == null) return LandCoopState.NOT_FOUND_LAND;
         final LandCoopState state = l.addCoop(uuid);
         if (state != LandCoopState.COMPLETE) return state;
@@ -388,7 +409,13 @@ public class DatabaseManager {
     }
 
     public LandCoopState removeCoop(int land, String name) {
-        PlayerLand l = getPlayerLand(land);
+        PlayerLand l;
+        try {
+            l = getPlayerLand(land);
+        } catch (PlayerLandNotFoundException e) {
+            saveThrowable("ERROR", e);
+            throw new RuntimeException(e);
+        }
         if(l == null) return LandCoopState.NOT_FOUND_LAND;
         final LandCoopState state = l.removeCoop(name);
         if (state != LandCoopState.COMPLETE) return state;
@@ -414,7 +441,12 @@ public class DatabaseManager {
     }
 
     public LandCoopState removeCoop(int land, UUID uuid) {
-        PlayerLand l = getPlayerLand(land);
+        PlayerLand l = null;
+        try {
+            l = getPlayerLand(land);
+        } catch (PlayerLandNotFoundException e) {
+            saveThrowable("ERROR", e);
+        }
         if(l == null) return LandCoopState.NOT_FOUND_LAND;
         final LandCoopState state = l.removeCoop(uuid);
         if (state != LandCoopState.COMPLETE) return state;
@@ -534,6 +566,31 @@ public class DatabaseManager {
                     .orElse(null);
     }
 
+    public PlayerLand getPlayerLandInDB(int id) {
+        try (
+                Connection c = DriverManager.getConnection(CONNECTION);
+                ResultSet r = c.prepareStatement("SELECT * from Lands where id=\""+id+"\"").executeQuery()
+        ) {
+            if (r.next()) {
+                String[] spawns = r.getString("spawn").split(":");
+                return new PlayerLand(
+                        r.getInt("id"),
+                        UUID.fromString(r.getString("owner")),
+                        r.getString("name"),
+                        r.getString("coop"),
+                        r.getInt("x"),
+                        r.getInt("z"),
+                        new Location(Bukkit.getWorld(r.getString("world")), Double.parseDouble(spawns[0]), Double.parseDouble(spawns[1]), Double.parseDouble(spawns[2]), Float.parseFloat(spawns[3]), Float.parseFloat(spawns[4])),
+                        r.getInt("size"),
+                        r.getDouble("cost")
+                );
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public PlayerLand getPlayerLandInDB(UUID uuid, String name) {
         try (
                 Connection c = DriverManager.getConnection(CONNECTION);
@@ -561,17 +618,28 @@ public class DatabaseManager {
 
     @Nullable
     public PlayerLand getPlayerLand(UUID uuid, String name) {
-        return playerLands.stream()
-                .filter(land -> land.getOwner().equals(uuid) && land.getName().equals(name))
+        PlayerLand land = playerLands.stream()
+                .filter(l -> l.getOwner().equals(uuid) && l.getName().equals(name))
                 .findFirst()
                 .orElse(null);
+        if(land != null) return land;
+        land = getPlayerLandInDB(uuid, name);
+        if(land != null) playerLands.add(land);
+        return land;
     }
 
-    public PlayerLand getPlayerLand(int id) {
-        return playerLands.stream()
-                .filter(land -> land.getId() == id)
+    public PlayerLand getPlayerLand(int id) throws PlayerLandNotFoundException {
+        PlayerLand land = playerLands.stream()
+                .filter(l -> l.getId() == id)
                 .findFirst()
-                .orElseThrow(() -> new NullPointerException("Cannot found playerLand with id " + id));
+                .orElse(null);
+        if(land != null) return land;
+        land = getPlayerLandInDB(id);
+        if(land != null) {
+            playerLands.add(land);
+            return land;
+        }
+        throw new PlayerLandNotFoundException("Cannot find land with id '" + id + "'");
     }
 
     public boolean checkPlayerLandsWithName(UUID uuid, String name) {

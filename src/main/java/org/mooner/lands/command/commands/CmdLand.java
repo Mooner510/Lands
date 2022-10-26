@@ -13,6 +13,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.mooner.lands.command.ICommand;
+import org.mooner.lands.exception.PlayerLandNotFoundException;
 import org.mooner.lands.gui.gui.DupeLandsGUI;
 import org.mooner.lands.gui.gui.FixGUI;
 import org.mooner.lands.gui.gui.HomeGUI;
@@ -28,6 +29,7 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 import static org.mooner.lands.MoonerUtils.chat;
+import static org.mooner.lands.MoonerUtils.saveThrowable;
 
 public class CmdLand implements ICommand {
     @Override
@@ -133,6 +135,9 @@ public class CmdLand implements ICommand {
                                         p.spigot().sendMessage(text);
                                     }
                                     p.sendMessage(chat("&e==== &7위 목록 중에서 이동할 땅을 선택하세요. &e===="));
+                                } catch (PlayerLandNotFoundException e) {
+                                    saveThrowable("ERROR", e);
+                                    throw new RuntimeException(e);
                                 }
                             } else {
                                 p.sendMessage(chat("&c플레이어 이름 또는 땅 이름을 입력하세요."));
@@ -148,7 +153,13 @@ public class CmdLand implements ICommand {
                                     int id = Integer.parseInt(arg[2]);
                                     final int fromX = Integer.parseInt(arg[3]);
                                     final int fromZ = Integer.parseInt(arg[4]);
-                                    final PlayerLand land = DatabaseManager.init.getPlayerLand(id);
+                                    final PlayerLand land;
+                                    try {
+                                        land = DatabaseManager.init.getPlayerLand(id);
+                                    } catch (PlayerLandNotFoundException e) {
+                                        saveThrowable("ERROR", e);
+                                        throw new RuntimeException(e);
+                                    }
                                     if(land == null) {
                                         p.sendMessage(chat("&c해당 id의 땅을 찾을 수 없습니다."));
                                         return true;

@@ -1,5 +1,6 @@
 package org.mooner.lands;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -11,10 +12,16 @@ import org.mooner.lands.command.IPlayerCommand;
 import org.mooner.lands.land.db.DatabaseManager;
 import org.mooner.lands.optimize.ChunkCleaner;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 import static org.mooner.lands.MoonerUtils.chat;
+import static org.mooner.lands.MoonerUtils.saveThrowable;
 
 public final class Lands extends JavaPlugin {
     public static Lands lands;
@@ -53,9 +60,11 @@ public final class Lands extends JavaPlugin {
 //            b = CommandUtils.runCommand(sender, cmd, arg);
         } catch (Exception e) {
             e.printStackTrace();
-            if(this.getDescription().getCommands().containsKey(cmd.getName())) {
+            if (this.getDescription().getCommands().containsKey(cmd.getName())) {
                 sender.sendMessage(chat("  &4Error: " + e.getMessage()));
+                sender.sendMessage(chat("  &c예기치 않은 문제가 발생했습니다. 즉시 관리자에게 문의해 주세요."));
             }
+            saveThrowable(dataPath + "error/", "ERROR-" + sender.getName(), e);
         }
         return b;
     }
