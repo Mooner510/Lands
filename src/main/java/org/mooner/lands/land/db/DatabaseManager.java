@@ -19,6 +19,7 @@ import javax.annotation.Nullable;
 import java.io.*;
 import java.sql.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.mooner.lands.Lands.dataPath;
 import static org.mooner.lands.Lands.lands;
@@ -36,7 +37,7 @@ public class DatabaseManager {
 //    private Map<String, List<String>> listMessage;
 
     private Set<String> worlds;
-    private Map<Integer, LandManager> landManagerMap;
+    public Map<Integer, LandManager> landManagerMap;
     private Map<String, LandsData> landsData;
     private List<LandsData> landsDataSorted;
     private Set<PlayerLand> playerLands;
@@ -143,7 +144,7 @@ public class DatabaseManager {
                 );
                 playerLands.add(land);
                 try {
-                    landManagerMap.put(id, new LandManager(land, flags.get(id)));
+                    new LandManager(land, flags.get(id)).register();
                 } catch (PlayerLandNotFoundException e) {
                     saveThrowable("ERROR", e, land);
                 }
@@ -291,14 +292,19 @@ public class DatabaseManager {
             } catch (SQLException e) {
                 e.printStackTrace();
             }
-            PlayerLand land = getPlayerLandInDB(uuid, name);
-            Bukkit.getScheduler().runTaskLater(Lands.lands, () -> land.getSquare().getOutline(arr -> new Location(w, arr[0] + x, w.getHighestBlockYAt(arr[0] + x, arr[1] + z) + 1, arr[1] + z).getBlock().setType(Material.OAK_FENCE)), 20L);
-            playerLands.add(land);
-            try {
-                landManagerMap.put(land.getId(), new LandManager(land, null));
-            } catch (PlayerLandNotFoundException e) {
-                saveThrowable("ERROR", e, land);
-            }
+            Bukkit.getScheduler().runTaskTimer(Lands.lands, task -> {
+                PlayerLand land = getPlayerLandInDB(uuid, name);
+                if(land != null && land.getOwner() != null) {
+                    Bukkit.getScheduler().runTaskLater(Lands.lands, () -> land.getSquare().getOutline(arr -> new Location(w, arr[0] + x, w.getHighestBlockYAt(arr[0] + x, arr[1] + z) + 1, arr[1] + z).getBlock().setType(Material.OAK_FENCE)), 20L);
+                    playerLands.add(land);
+                    try {
+                        new LandManager(land, null).register();
+                    } catch (PlayerLandNotFoundException e) {
+                        saveThrowable("ERROR", e, land);
+                    }
+                    task.cancel();
+                }
+            }, 0, 2);
         });
         return LandState.COMPLETE;
     }
@@ -648,8 +654,16 @@ public class DatabaseManager {
     }
 
     public List<PlayerLand> getPlayerLands(UUID uuid) {
+        playerLands = playerLands.stream()
+                .map(land -> {
+                    if(land.getOwner() == null) {
+                        getLandManager(land.getId()).unregister();
+                        return getPlayerLandInDB(land.getId());
+                    } else return land;
+                })
+                .collect(Collectors.toSet());
         return playerLands.stream()
-                .filter(land -> land.getOwner().equals(uuid))
+                .filter(land -> land.getOwner() != null && land.getOwner().equals(uuid))
                 .sorted(Comparator.comparing(PlayerLand::getName))
                 .toList();
     }
@@ -657,7 +671,7 @@ public class DatabaseManager {
     public List<PlayerLand> searchPlayerLands(String name) {
         String finalName = name.toLowerCase();
         return playerLands.stream()
-                .filter(land -> Bukkit.getOfflinePlayer(land.getOwner()).getName().contains(name) || land.getName().toLowerCase().replace(" ", "").contains(finalName))
+                .filter(land -> land.getOwner() != null && Bukkit.getOfflinePlayer(land.getOwner()).getName().contains(name) || land.getName().toLowerCase().replace(" ", "").contains(finalName))
                 .sorted(Comparator.comparing(PlayerLand::getName))
                 .limit(12)
                 .toList();

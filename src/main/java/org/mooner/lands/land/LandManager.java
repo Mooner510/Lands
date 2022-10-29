@@ -45,6 +45,7 @@ public class LandManager {
     public void register() throws PlayerLandNotFoundException {
         if(listener != null) unregisterEvent();
         Bukkit.getPluginManager().registerEvents(listener = new LandListener(landId, world, square), Lands.lands);
+        DatabaseManager.init.landManagerMap.put(landId, this);
     }
 
     public void unregisterEvent() {
@@ -58,6 +59,7 @@ public class LandManager {
         flagMap = null;
         valueMap = null;
         requests = null;
+        DatabaseManager.init.landManagerMap.remove(landId);
     }
 
     public boolean setFlagRequest(LandFlags flag, LandFlags.LandFlagSetting setting) {
