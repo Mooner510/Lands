@@ -68,7 +68,7 @@ public class DatabaseManager {
                 Connection c = DriverManager.getConnection(CONNECTION);
                 PreparedStatement s = c.prepareStatement(
                         "CREATE TABLE IF NOT EXISTS Lands (" +
-                                "id INTEGER," +
+                                "id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
                                 "owner TEXT NOT NULL," +
                                 "name TEXT NOT NULL," +
                                 "coop TEXT," +
@@ -78,8 +78,7 @@ public class DatabaseManager {
                                 "spawn TEXT NOT NULL," +
                                 "size INTEGER NOT NULL," +
                                 "cost REAL NOT NULL," +
-                                "deleted INTEGER NOT NULL," +
-                                "PRIMARY KEY(id AUTOINCREMENT)" +
+                                "deleted INTEGER NOT NULL" +
                                 ")")
         ) {
             s.execute();
@@ -91,11 +90,10 @@ public class DatabaseManager {
                 Connection c = DriverManager.getConnection(CONNECTION);
                 PreparedStatement s = c.prepareStatement(
                         "CREATE TABLE IF NOT EXISTS Flags (" +
-                                "id INTEGER," +
+                                "id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
                                 "land INTEGER NOT NULL," +
                                 "flag TEXT NOT NULL," +
-                                "value INTEGER NOT NULL," +
-                                "PRIMARY KEY(id AUTOINCREMENT)" +
+                                "value INTEGER NOT NULL" +
                                 ")")
         ) {
             s.execute();
@@ -292,6 +290,7 @@ public class DatabaseManager {
             } catch (SQLException e) {
                 e.printStackTrace();
             }
+
             Bukkit.getScheduler().runTaskTimer(Lands.lands, task -> {
                 PlayerLand land = getPlayerLandInDB(uuid, name);
                 if(land != null && land.getOwner() != null) {
@@ -572,6 +571,7 @@ public class DatabaseManager {
                     .orElse(null);
     }
 
+    @Nullable
     public PlayerLand getPlayerLandInDB(int id) {
         try (
                 Connection c = DriverManager.getConnection(CONNECTION);
@@ -597,6 +597,7 @@ public class DatabaseManager {
         return null;
     }
 
+    @Nullable
     public PlayerLand getPlayerLandInDB(UUID uuid, String name) {
         try (
                 Connection c = DriverManager.getConnection(CONNECTION);
